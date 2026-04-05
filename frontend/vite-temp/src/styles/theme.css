@@ -1,0 +1,106 @@
+:root {
+  /* Dark Football Theme with High Contrast */
+  --bg: #121212; /* Charcoal background */
+  --text: #E0E0E0; /* Light gray text for readability */
+  --primary: #0B3D2E; /* Deep green primary */
+  --accent-gold: #D4AF37; /* Gold accent */
+  --accent-green: #00C853; /* Bright green accent */
+  --secondary: #333333; /* Dark gray secondary */
+  --shadow: rgba(0, 0, 0, 0.3);
+  --border-radius: 8px;
+  --hover-bg: rgba(255, 255, 255, 0.1);
+}
+
+/* Force high contrast overrides */
+body {
+  background: linear-gradient(135deg, var(--primary), var(--bg)) !important;
+  color: var(--text) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text) !important;
+}
+
+p, span, div {
+  color: var(--text) !important;
+}
+
+a {
+  color: var(--accent-gold) !important;
+}
+
+a:hover {
+  color: var(--accent-green) !important;
+}
+
+/* Cards and panels */
+.card, .panel {
+  background: var(--secondary) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--primary) !important;
+}
+
+/* Buttons */
+.btn {
+  color: var(--text) !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-green), var(--accent-gold)) !important;
+  color: var(--bg) !important; /* Dark text on bright button */
+}
+
+.btn-secondary {
+  background: var(--secondary) !important;
+  color: var(--text) !important;
+}
+
+/* Inputs and forms */
+input, select, textarea {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--primary) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent-gold) !important;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2) !important;
+}
+
+/* Tables */
+table {
+  background: var(--secondary) !important;
+  color: var(--text) !important;
+}
+
+th, td {
+  color: var(--text) !important;
+  border-color: var(--primary) !important;
+}
+
+/* Badges and highlights */
+.badge {
+  background: var(--accent-gold) !important;
+  color: var(--bg) !important;
+}
+
+/* Tabs */
+.tab {
+  background: var(--secondary) !important;
+  color: var(--text) !important;
+}
+
+.tab.active {
+  background: var(--primary) !important;
+  color: var(--text) !important;
+}
+
+/* Ensure no dark text on dark backgrounds */
+* {
+  color: var(--text) !important;
+}
+
+.dark-bg * {
+  color: var(--text) !important;
+}</content>
+<parameter name="filePath">/Volumes/DataMac/Developer/VolvemosFutbolEstadistics/my-dotnet-react-app/frontend/src/styles/theme.css

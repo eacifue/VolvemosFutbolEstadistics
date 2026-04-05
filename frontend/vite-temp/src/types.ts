@@ -1,0 +1,124 @@
+export interface MatchEventSummaryDto {
+  id: number;
+  playerId: number;
+  playerFullName: string;
+  eventTypeId: number;
+  eventTypeName: string;
+  teamId: number;
+}
+
+export interface RecentMatchDto {
+  id: number;
+  matchDate: string;
+  homeTeamId: number;
+  awayTeamId: number;
+  homeGoals: number;
+  awayGoals: number;
+  winner: 'home' | 'away' | 'draw';
+  events: MatchEventSummaryDto[];
+}
+
+export interface TopPlayerDto {
+  playerId: number;
+  firstName: string;
+  lastName: string;
+  goals?: number;
+  assists?: number;
+}
+
+export interface TeamStatsDto {
+  id: number;
+  name: string;
+  color: string;
+  matchesPlayed: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+}
+
+export interface DashboardDto {
+  recentMatches: RecentMatchDto[];
+  topScorers: TopPlayerDto[];
+  topAssists: TopPlayerDto[];
+  teamComparison: TeamStatsDto[];
+}
+
+
+export interface Position {
+    id: number;
+    name?: string;
+}
+
+export interface Player {
+    id: number;
+    firstName: string;
+    lastName: string;
+    positionId?: number;
+    position?: Position;
+    goals: number;
+    assists: number;
+    matches: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface PlayerStatsDto {
+    playerId: number;
+    goals: number;
+    assists: number;
+    matches: number;
+}
+
+export interface Team {
+    id: number;
+    name: string;
+    color: string;
+    matchesPlayed: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface EventType {
+    id: number;
+    name?: string;
+}
+
+export interface MatchPlayer {
+    id: number;
+    matchId: number;
+    playerId: number;
+    player: Player;
+    teamId: number;
+    createdAt: string;
+}
+
+export interface MatchEvent {
+    id: number;
+    matchId: number;
+    playerId: number;
+    player: string;
+    eventTypeId: number;
+    eventType?: EventType;
+    teamId: number;
+    createdAt: string;
+}
+
+export interface Match {
+    id: number;
+    matchDate: string;
+    homeTeamId?: number;
+    awayTeamId?: number;
+    homeTeam?: Team;
+    awayTeam?: Team;
+    matchPlayers: MatchPlayer[];
+    events: MatchEvent[];
+    createdAt: string;
+    updatedAt: string;
+}
