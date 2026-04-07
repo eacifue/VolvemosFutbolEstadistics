@@ -1,8 +1,8 @@
 ### get tyeams
-GET http://localhost:5186/api/players HTTP/1.1
+GET  https://vfapi-production.up.railway.app/api/players HTTP/1.1
 
 ### get teams
-GET http://localhost:5186/api/matches HTTP/1.1
+GET https://vfapi-production.up.railway.app/api/matches HTTP/1.1
 
 ### get teams
-GET http://localhost:5186/api/matchevents/match/2 HTTP/1.1
+GET https://vfapi-production.up.railway.app:8080/api/matchevents/match/2 HTTP/1.1

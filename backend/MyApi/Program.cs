@@ -49,14 +49,30 @@ builder.Services.AddScoped<IEventTypeService, EventTypeService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 // Add CORS policy
+var allowedOrigins = builder.Configuration
+    .GetSection("AllowedOrigins")
+    .Get<string[]>() ?? [];
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalDev", policy =>
-        policy.SetIsOriginAllowed(origin =>
-                new Uri(origin).Host == "localhost"
-              )
-              .AllowAnyHeader()
-              .AllowAnyMethod());
+    options.AddPolicy("CorsPolicy", policy =>
+    {
+        if (builder.Environment.IsDevelopment())
+        {
+            // En local permite cualquier localhost
+            policy.SetIsOriginAllowed(origin =>
+                    new Uri(origin).Host == "localhost")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        }
+        else
+        {
+            // En producción solo las URLs configuradas
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        }
+    });
 });
 
 var app = builder.Build();
@@ -71,7 +87,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // Enable CORS
-app.UseCors("AllowLocalDev");
+app.UseCors("CorsPolicy");
 
 // map controller endpoints
 app.MapControllers();
