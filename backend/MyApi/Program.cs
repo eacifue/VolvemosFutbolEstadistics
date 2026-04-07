@@ -12,7 +12,7 @@ builder.Services.AddOpenApi();
 // add controllers
 builder.Services.AddControllers();
 
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+var connectionString = Environment.GetEnvironmentVariable("MYSQL_URL");
 if (string.IsNullOrEmpty(connectionString))
 {
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
