@@ -12,19 +12,28 @@ builder.Services.AddOpenApi();
 // add controllers
 builder.Services.AddControllers();
 
-// configure Entity Framework database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
 if (string.IsNullOrEmpty(connectionString))
 {
-    // Use In-Memory database for development/tests
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+}
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    // Dev fallback
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseInMemoryDatabase("VolvemosFutbol"));
 }
 else
 {
-    // Use MySQL for production/Docker
+    // Production (Railway MySQL)
+    var uri = new Uri(connectionString);
+    var userInfo = uri.UserInfo.Split(':');
+
+    var conn = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={userInfo[0]};Password={userInfo[1]};SslMode=Required;";
+
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 33))));
+        options.UseMySql(conn, ServerVersion.AutoDetect(conn)));
 }
 
 
