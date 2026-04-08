@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Notification, { NotificationType } from './Notification';
+import Notification, { type NotificationType } from './Notification';
 import './NotificationDemo.css';
 
 const NotificationDemo: React.FC = () => {

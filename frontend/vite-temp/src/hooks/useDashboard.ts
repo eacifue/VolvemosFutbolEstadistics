@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DashboardDto } from '../types/dashboard';
+import { type DashboardDto } from '../types';
 
 const useDashboard = () => {
   const [data, setData] = useState<DashboardDto | null>(null);
