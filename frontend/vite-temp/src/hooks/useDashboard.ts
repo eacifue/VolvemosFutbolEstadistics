@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react';
 import { type DashboardDto } from '../types';
+import axios from 'axios';
 
 const useDashboard = () => {
   const [data, setData] = useState<DashboardDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+const apiClient = axios.create({
+    baseURL: import.meta.env.VITE_API_URL + '/api' || 'http://localhost:5186/api',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const response = await fetch('http://localhost:5186/api/dashboard');
+        const response = await fetch(apiClient + '/dashboard');
 
         if (!response.ok) {
           const text = await response.text();
