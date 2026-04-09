@@ -48,10 +48,8 @@ builder.Services.AddScoped<IPositionService, PositionService>();
 builder.Services.AddScoped<IEventTypeService, EventTypeService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
+var allowedOrigins = Environment.GetEnvironmentVariable("AllowedOrigins__0");
 // Add CORS policy
-var allowedOrigins = builder.Configuration
-    .GetSection("AllowedOrigins")
-    .Get<string[]>() ?? [];
 
 builder.Services.AddCors(options =>
 {
