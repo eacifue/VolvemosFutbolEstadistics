@@ -48,20 +48,15 @@ builder.Services.AddScoped<IPositionService, PositionService>();
 builder.Services.AddScoped<IEventTypeService, EventTypeService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
-var allowedOrigins = Environment.GetEnvironmentVariable("AllowedOrigins__0");
-// Add CORS policy
+var allowedOrigins = Environment.GetEnvironmentVariable("FRONTEND_URL"); // Agrega esta var en Railway
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("CorsPolicy", policy =>
-    {
-        // En producción solo las URLs configuradas
-        policy.WithOrigins(allowedOrigins)
-                .AllowAnyHeader()
-                .AllowAnyMethod();
+builder.Services.AddCors(options => {
+    options.AddPolicy("CorsPolicy", policy => {
+        policy.WithOrigins(allowedOrigins) // Ej: https://tu-front.up.railway.app
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
-
 var app = builder.Build();
 
 
