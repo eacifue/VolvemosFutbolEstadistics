@@ -57,21 +57,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        if (builder.Environment.IsDevelopment())
-        {
-            // En local permite cualquier localhost
-            policy.SetIsOriginAllowed(origin =>
-                    new Uri(origin).Host == "localhost")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        }
-        else
-        {
-            // En producción solo las URLs configuradas
-            policy.WithOrigins(allowedOrigins)
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        }
+        // En producción solo las URLs configuradas
+        policy.WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
     });
 });
 
