@@ -1,133 +1,118 @@
 import axios from 'axios';
 
-// Dashboard endpoint
-export const getDashboard = async () => {
-    const res = await apiClient.get('/dashboard');
-    return res.data;
-};
+// ✅ Base URL segura (NO rompe en producción ni en local)
+const baseURL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : 'http://localhost:5186/api';
 
+// ✅ Cliente centralizado
 const apiClient = axios.create({
-    baseURL: import.meta.env.VITE_API_URL + '/api' || 'http://localhost:5186/api',
-    headers: {
-        'Content-Type': 'application/json',
-    },
+  baseURL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-// Players endpoints
-export const getPlayers = async () => {
-    const res = await apiClient.get('/players');
-    return res.data;
+// ✅ Interceptor global para errores (debug profesional)
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error(
+      'API ERROR:',
+      error?.response?.data || error.message
+    );
+    return Promise.reject(error);
+  }
+);
+
+// ✅ Helper para evitar repetir res.data
+const request = async (promise: Promise<any>) => {
+  const res = await promise;
+  return res.data;
 };
 
-export const getPlayer = async (id: number) => {
-    const res = await apiClient.get(`/players/${id}`);
-    return res.data;
-};
+// ==================== DASHBOARD ====================
+export const getDashboard = () =>
+  request(apiClient.get('/dashboard'));
 
-export const createPlayer = async (player: any) => {
-    const res = await apiClient.post('/players', player);
-    return res.data;
-};
+// ==================== PLAYERS ====================
+export const getPlayers = () =>
+  request(apiClient.get('/players'));
 
-export const updatePlayer = async (id: number, player: any) => {
-    const res = await apiClient.put(`/players/${id}`, player);
-    return res.data;
-};
+export const getPlayer = (id: number) =>
+  request(apiClient.get(`/players/${id}`));
 
-export const deletePlayer = async (id: number) => {
-    await apiClient.delete(`/players/${id}`);
-};
+export const createPlayer = (player: any) =>
+  request(apiClient.post('/players', player));
 
-export const getPlayerStats = async (id: number) => {
-    const res = await apiClient.get(`/players/${id}/stats`);
-    return res.data;
-};
+export const updatePlayer = (id: number, player: any) =>
+  request(apiClient.put(`/players/${id}`, player));
 
-export const getAllPlayersStats = async () => {
-    const res = await apiClient.get('/players/stats');
-    return res.data;
-};
+export const deletePlayer = (id: number) =>
+  apiClient.delete(`/players/${id}`);
 
-// Teams endpoints
-export const getTeams = async () => {
-    const res = await apiClient.get('/teams');
-    return res.data;
-};
+export const getPlayerStats = (id: number) =>
+  request(apiClient.get(`/players/${id}/stats`));
 
-// Positions endpoints
-export const getPositions = async () => {
-    const res = await apiClient.get('/positions');
-    return res.data;
-};
+export const getAllPlayersStats = () =>
+  request(apiClient.get('/players/stats'));
 
-// Event types endpoints
-export const getEventTypes = async () => {
-    const res = await apiClient.get('/eventtypes');
-    return res.data;
-};
+// ==================== TEAMS ====================
+export const getTeams = () =>
+  request(apiClient.get('/teams'));
 
-// Matches endpoints
-export const getMatches = async () => {
-    const res = await apiClient.get('/matches');
-    return res.data;
-};
+// ==================== POSITIONS ====================
+export const getPositions = () =>
+  request(apiClient.get('/positions'));
 
-export const getMatch = async (id: number) => {
-    const res = await apiClient.get(`/matches/${id}`);
-    return res.data;
-};
+// ==================== EVENT TYPES ====================
+export const getEventTypes = () =>
+  request(apiClient.get('/eventtypes'));
 
-export const createMatch = async (match: any) => {
-    const res = await apiClient.post('/matches', match);
-    return res.data;
-};
+// ==================== MATCHES ====================
+export const getMatches = () =>
+  request(apiClient.get('/matches'));
 
-export const updateMatch = async (id: number, match: any) => {
-    const res = await apiClient.put(`/matches/${id}`, match);
-    return res.data;
-};
+export const getMatch = (id: number) =>
+  request(apiClient.get(`/matches/${id}`));
 
-export const deleteMatch = async (id: number) => {
-    await apiClient.delete(`/matches/${id}`);
-};
+export const createMatch = (match: any) =>
+  request(apiClient.post('/matches', match));
 
-// Match Events endpoints
-export const getMatchEvents = async (matchId: number) => {
-    const res = await apiClient.get(`/matchevents/match/${matchId}`);
-    return res.data;
-};
+export const updateMatch = (id: number, match: any) =>
+  request(apiClient.put(`/matches/${id}`, match));
 
-export const createMatchEvent = async (event: any) => {
-    const res = await apiClient.post('/matchevents', event);
-    return res.data;
-};
+export const deleteMatch = (id: number) =>
+  apiClient.delete(`/matches/${id}`);
 
-export const updateMatchEvent = async (id: number, event: any) => {
-    const res = await apiClient.put(`/matchevents/${id}`, event);
-    return res.data;
-};
+// ==================== MATCH EVENTS ====================
+export const getMatchEvents = (matchId: number) =>
+  request(apiClient.get(`/matchevents/match/${matchId}`));
 
-export const deleteMatchEvent = async (id: number) => {
-    await apiClient.delete(`/matchevents/${id}`);
-};
+export const createMatchEvent = (event: any) =>
+  request(apiClient.post('/matchevents', event));
 
-export const deleteMatchEventsByMatch = async (matchId: number) => {
-    await apiClient.delete(`/matchevents/match/${matchId}`);
-};
+export const updateMatchEvent = (id: number, event: any) =>
+  request(apiClient.put(`/matchevents/${id}`, event));
 
-// Match Players endpoints
-export const getMatchPlayers = async (matchId: number) => {
-    const res = await apiClient.get(`/matchplayers/match/${matchId}`);
-    return res.data;
-};
+export const deleteMatchEvent = (id: number) =>
+  apiClient.delete(`/matchevents/${id}`);
 
-export const addPlayerToMatch = async (matchPlayer: any) => {
-    const res = await apiClient.post('/matchplayers', matchPlayer);
-    return res.data;
-};
+export const deleteMatchEventsByMatch = (matchId: number) =>
+  apiClient.delete(`/matchevents/match/${matchId}`);
 
-export const removePlayerFromMatch = async (matchId: number, playerId: number) => {
-    await apiClient.delete(`/matchplayers/${matchId}/${playerId}`);
-};
+// ==================== MATCH PLAYERS ====================
+export const getMatchPlayers = (matchId: number) =>
+  request(apiClient.get(`/matchplayers/match/${matchId}`));
 
+export const addPlayerToMatch = (matchPlayer: any) =>
+  request(apiClient.post('/matchplayers', matchPlayer));
+
+export const removePlayerFromMatch = (
+  matchId: number,
+  playerId: number
+) =>
+  apiClient.delete(`/matchplayers/${matchId}/${playerId}`);
+
+// ✅ Export del cliente (por si lo necesitas en otros lados)
 export default apiClient;
