@@ -95,6 +95,8 @@ builder.Services.AddCors(options =>
                 policy
                     .WithOrigins(allowedOrigins.Split(','))
                     .AllowAnyHeader()
+                    .WithExposedHeaders("Authorization")
+                    .AllowAnyHeader()
                     .AllowAnyMethod();
             }
             else
