@@ -17,32 +17,42 @@ namespace MyApi.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(ApplicationDbContext context, IConfiguration configuration)
+        public AuthController(ApplicationDbContext context, IConfiguration configuration, ILogger<AuthController> logger)
         {
             _context = context;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponseDto>> Login(LoginRequestDto request)
         {
-            if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
-                return Unauthorized("Credenciales inválidas");
-
-            var username = request.Username.Trim();
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-                return Unauthorized("Credenciales inválidas");
-
-            var token = GenerateJwtToken(user.Username, user.Role);
-
-            return Ok(new LoginResponseDto
+            try
             {
-                Token = token,
-                Username = user.Username,
-                Role = user.Role
-            });
+                if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+                    return Unauthorized("Credenciales inválidas");
+
+                var username = request.Username.Trim();
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+                if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+                    return Unauthorized("Credenciales inválidas");
+
+                var token = GenerateJwtToken(user.Username, user.Role);
+
+                return Ok(new LoginResponseDto
+                {
+                    Token = token,
+                    Username = user.Username,
+                    Role = user.Role
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during login for user {Username}", request.Username);
+                return StatusCode(500, "Error interno al autenticar.");
+            }
         }
 
         private string GenerateJwtToken(string username, string role)

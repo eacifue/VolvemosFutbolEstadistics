@@ -144,10 +144,21 @@ app.UseAuthorization();
 app.MapControllers();
 
 // using (var scope = app.Services.CreateScope())
-// {
-//     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-//     await AuthSeeder.EnsureAdminUserAsync(context);
-// }
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("AuthBootstrap");
+
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await AuthSeeder.EnsureAdminUserAsync(context);
+        logger.LogInformation("Auth seeder executed successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error while executing auth seeder.");
+    }
+}
 app.Run();
 
 static string NormalizeOrigin(string origin)
