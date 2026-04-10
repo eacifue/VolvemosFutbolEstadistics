@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Collections.Generic;
 using MyApi.Data;
 using MyApi.Services;
 using Pomelo.EntityFrameworkCore.MySql;
@@ -75,6 +76,12 @@ builder.Services.AddScoped<IEventTypeService, EventTypeService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 var allowedOrigins = Environment.GetEnvironmentVariable("FRONTEND_URL");
+var configuredOrigins = (allowedOrigins ?? string.Empty)
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    .Select(NormalizeOrigin)
+    .Where(static origin => !string.IsNullOrWhiteSpace(origin))
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
 builder.Services.AddCors(options =>
 {
@@ -89,21 +96,27 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            // ✅ Fallback seguro en producción
-            if (!string.IsNullOrEmpty(allowedOrigins))
+            if (configuredOrigins.Count > 0)
             {
                 policy
-                    .WithOrigins(allowedOrigins.Split(','))
-                    .AllowAnyHeader()
+                    .SetIsOriginAllowed(origin => configuredOrigins.Contains(NormalizeOrigin(origin)))
                     .WithExposedHeaders("Authorization")
                     .AllowAnyHeader()
                     .AllowAnyMethod();
             }
             else
             {
-                // 🔥 fallback PRO (evita que se rompa Railway)
+                // Fallback controlado para despliegues Railway cuando FRONTEND_URL no esta configurado.
                 policy
-                    .AllowAnyOrigin()
+                    .SetIsOriginAllowed(origin =>
+                    {
+                        if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                        {
+                            return false;
+                        }
+
+                        return uri.Host.EndsWith(".up.railway.app", StringComparison.OrdinalIgnoreCase);
+                    })
                     .AllowAnyHeader()
                     .AllowAnyMethod();
             }
@@ -136,6 +149,30 @@ app.MapControllers();
 //     await AuthSeeder.EnsureAdminUserAsync(context);
 // }
 app.Run();
+
+static string NormalizeOrigin(string origin)
+{
+    if (string.IsNullOrWhiteSpace(origin))
+    {
+        return string.Empty;
+    }
+
+    var trimmed = origin.Trim();
+
+    if (!Uri.TryCreate(trimmed, UriKind.Absolute, out var uri))
+    {
+        return trimmed.TrimEnd('/');
+    }
+
+    var builder = new UriBuilder(uri)
+    {
+        Path = string.Empty,
+        Query = string.Empty,
+        Fragment = string.Empty
+    };
+
+    return builder.Uri.ToString().TrimEnd('/');
+}
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
