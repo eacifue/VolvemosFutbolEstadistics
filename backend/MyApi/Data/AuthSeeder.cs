@@ -23,7 +23,26 @@ CREATE TABLE IF NOT EXISTS Users (
 
             var existing = await context.Users.FirstOrDefaultAsync(u => u.Username == "admin");
             if (existing != null)
+            {
+                // Verify the stored hash is valid; if not, re-hash and update
+                bool hashIsValid = false;
+                try
+                {
+                    BCrypt.Net.BCrypt.Verify("probe", existing.PasswordHash);
+                    hashIsValid = true;
+                }
+                catch (BCrypt.Net.SaltParseException)
+                {
+                    hashIsValid = false;
+                }
+
+                if (!hashIsValid)
+                {
+                    existing.PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123");
+                    await context.SaveChangesAsync();
+                }
                 return;
+            }
 
             context.Users.Add(new Models.User
             {
