@@ -13,6 +13,15 @@ const apiClient = axios.create({
   },
 });
 
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers = config.headers ?? {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // ✅ Interceptor global para errores (debug profesional)
 apiClient.interceptors.response.use(
   (response) => response,
@@ -33,11 +42,11 @@ const request = async (promise: Promise<any>) => {
 
 // ==================== DASHBOARD ====================
 export const getDashboard = () =>
-  request(apiClient.get('/dashboard'));
+  request(apiClient.get('/dashboard', { params: { _ts: Date.now() } }));
 
 // ==================== PLAYERS ====================
 export const getPlayers = () =>
-  request(apiClient.get('/players'));
+  request(apiClient.get('/players', { params: { _ts: Date.now() } }));
 
 export const getPlayer = (id: number) =>
   request(apiClient.get(`/players/${id}`));

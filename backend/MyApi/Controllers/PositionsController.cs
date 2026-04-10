@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyApi.DTOs;
 using MyApi.Models;
@@ -36,6 +37,7 @@ namespace MyApi.Controllers
             return Ok(MapToDto(position));
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<PositionDto>> CreatePosition(Position position)
         {
@@ -43,6 +45,7 @@ namespace MyApi.Controllers
             return CreatedAtAction(nameof(GetPosition), new { id = created.Id }, MapToDto(created));
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult<PositionDto>> UpdatePosition(int id, Position position)
         {
@@ -52,6 +55,7 @@ namespace MyApi.Controllers
             return Ok(MapToDto(updated));
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePosition(int id)
         {

@@ -17,6 +17,7 @@ namespace MyApi.Data
         public DbSet<Match> Matches { get; set; }
         public DbSet<MatchEvent> MatchEvents { get; set; }
         public DbSet<MatchPlayer> MatchPlayers { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -70,6 +71,22 @@ namespace MyApi.Data
                 .HasOne(mp => mp.Player)
                 .WithMany()
                 .HasForeignKey(mp => mp.PlayerId);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Username)
+                .IsRequired();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.PasswordHash)
+                .IsRequired();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Role)
+                .IsRequired();
         }
     }
 }

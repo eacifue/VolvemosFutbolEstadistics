@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyApi.DTOs;
 using MyApi.Models;
@@ -57,9 +58,17 @@ namespace MyApi.Controllers
         /// <summary>
         /// Create a new player
         /// </summary>
+        [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<PlayerDto>> CreatePlayer(Player player)
+        public async Task<ActionResult<PlayerDto>> CreatePlayer(CreatePlayerDto dto)
         {
+            var player = new Player
+            {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                PositionId = dto.IdPosition
+            };
+
             var createdPlayer = await _playerService.CreatePlayerAsync(player);
             return CreatedAtAction(nameof(GetPlayer), new { id = createdPlayer.Id }, MapToDto(createdPlayer));
         }
@@ -67,9 +76,17 @@ namespace MyApi.Controllers
         /// <summary>
         /// Update an existing player
         /// </summary>
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public async Task<ActionResult<PlayerDto>> UpdatePlayer(int id, Player player)
+        public async Task<ActionResult<PlayerDto>> UpdatePlayer(int id, CreatePlayerDto dto)
         {
+            var player = new Player
+            {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                PositionId = dto.IdPosition
+            };
+
             var updatedPlayer = await _playerService.UpdatePlayerAsync(id, player);
             if (updatedPlayer == null)
                 return NotFound();
@@ -98,6 +115,20 @@ namespace MyApi.Controllers
         {
             var stats = await _playerService.GetAllPlayersStatsAsync();
             return Ok(stats);
+        }
+
+        /// <summary>
+        /// Delete an existing player
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePlayer(int id)
+        {
+            var deleted = await _playerService.DeletePlayerAsync(id);
+            if (!deleted)
+                return NotFound();
+
+            return NoContent();
         }
 
         private static PlayerDto MapToDto(Player player)

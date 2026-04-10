@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyApi.Models;
 using MyApi.Services;
@@ -30,6 +31,7 @@ namespace MyApi.Controllers
         /// <summary>
         /// Create a new match event (goal, assist, card, etc.)
         /// </summary>
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<MatchEvent>> CreateEvent(MatchEvent matchEvent)
         {
@@ -40,6 +42,7 @@ namespace MyApi.Controllers
         /// <summary>
         /// Update an existing match event
         /// </summary>
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult<MatchEvent>> UpdateEvent(int id, MatchEvent matchEvent)
         {
@@ -53,6 +56,7 @@ namespace MyApi.Controllers
         /// <summary>
         /// Delete a match event
         /// </summary>
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEvent(int id)
         {
@@ -66,6 +70,7 @@ namespace MyApi.Controllers
         /// <summary>
         /// Delete all events for a specific match
         /// </summary>
+        [Authorize(Roles = "Admin")]
         [HttpDelete("match/{matchId}")]
         public async Task<IActionResult> DeleteEventsByMatch(int matchId)
         {

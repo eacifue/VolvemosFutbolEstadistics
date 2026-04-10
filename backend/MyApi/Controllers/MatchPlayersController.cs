@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyApi.Models;
 using MyApi.Services;
@@ -20,6 +21,7 @@ namespace MyApi.Controllers
         /// <summary>
         /// Add a player to a match team
         /// </summary>
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<MatchPlayer>> AddPlayerToMatch(MatchPlayer matchPlayer)
         {
@@ -33,6 +35,7 @@ namespace MyApi.Controllers
         /// <summary>
         /// Remove a player from a match
         /// </summary>
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{matchId}/{playerId}")]
         public async Task<IActionResult> RemovePlayerFromMatch(int matchId, int playerId)
         {

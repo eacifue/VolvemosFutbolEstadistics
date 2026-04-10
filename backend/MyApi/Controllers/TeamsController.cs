@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyApi.Data;
@@ -65,6 +66,7 @@ namespace MyApi.Controllers
         /// <summary>
         /// Update a team
         /// </summary>
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult<TeamDto>> UpdateTeam(int id, Team team)
         {

@@ -14,7 +14,7 @@ export interface RecentMatchDto {
   awayTeamId: number;
   homeGoals: number;
   awayGoals: number;
-  winner: 'home' | 'away' | 'draw';
+  winner: 'Home' | 'Away' | 'Draw';
   events: MatchEventSummaryDto[];
 }
 
@@ -39,6 +39,13 @@ export interface TeamStatsDto {
 }
 
 export interface DashboardDto {
+  totalMatches: number;
+  whiteTeamWins: number;
+  blackTeamWins: number;
+  draws: number;
+  whiteGoalsFor: number;
+  blackGoalsFor: number;
+  goalDifference: number;
   recentMatches: RecentMatchDto[];
   topScorers: TopPlayerDto[];
   topAssists: TopPlayerDto[];

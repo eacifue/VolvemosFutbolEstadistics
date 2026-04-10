@@ -1,0 +1,72 @@
+.login-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 18, 13, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 2000;
+  animation: modalFadeIn 0.2s ease;
+}
+
+.login-modal {
+  width: min(420px, 92vw);
+  background: var(--color-surface, #1f1f1f);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.16));
+  border-radius: 18px;
+  padding: 1.25rem;
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.35);
+  color: var(--color-text, #e8e8e8);
+  transform: translateY(0);
+  animation: modalSlideIn 0.2s ease;
+}
+
+.login-modal h3 {
+  margin: 0;
+}
+
+.login-modal p {
+  margin: 0.25rem 0 1rem;
+  color: var(--color-text-muted, #adb5bd);
+}
+
+.login-form {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.login-form label {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.login-error {
+  color: #ffd6d6;
+  background: rgba(220, 38, 38, 0.2);
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.login-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

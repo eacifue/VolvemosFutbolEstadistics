@@ -11,6 +11,9 @@ namespace MyApi.Services
 {
     public class PlayerService : IPlayerService
     {
+        private const int GoalEventTypeId = 1;
+        private const int AssistEventTypeId = 2;
+
         private readonly ApplicationDbContext _context;
 
         public PlayerService(ApplicationDbContext context)
@@ -20,17 +23,60 @@ namespace MyApi.Services
 
         public async Task<IEnumerable<Player>> GetAllPlayersAsync()
         {
-            return await _context.Players
+            var players = await _context.Players
+                .AsNoTracking()
                 .Include(p => p.Position)
                 .OrderBy(p => p.Id)
                 .ToListAsync();
+
+            var statsByPlayerId = await GetDynamicPlayerStatsAsync(players.Select(p => p.Id));
+
+            foreach (var player in players)
+            {
+                if (statsByPlayerId.TryGetValue(player.Id, out var stats))
+                {
+                    player.Goals = stats.Goals;
+                    player.Assists = stats.Assists;
+                    player.Matches = stats.Matches;
+                }
+                else
+                {
+                    player.Goals = 0;
+                    player.Assists = 0;
+                    player.Matches = 0;
+                }
+            }
+
+            return players;
         }
 
         public async Task<Player> GetPlayerByIdAsync(int id)
         {
-            return await _context.Players
+            var player = await _context.Players
+                .AsNoTracking()
                 .Include(p => p.Position)
                 .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (player == null)
+            {
+                return null;
+            }
+
+            var statsByPlayerId = await GetDynamicPlayerStatsAsync(new[] { id });
+            if (statsByPlayerId.TryGetValue(id, out var stats))
+            {
+                player.Goals = stats.Goals;
+                player.Assists = stats.Assists;
+                player.Matches = stats.Matches;
+            }
+            else
+            {
+                player.Goals = 0;
+                player.Assists = 0;
+                player.Matches = 0;
+            }
+
+            return player;
         }
 
         public async Task<Player> CreatePlayerAsync(Player player)
@@ -40,6 +86,11 @@ namespace MyApi.Services
 
             _context.Players.Add(player);
             await _context.SaveChangesAsync();
+
+            // Load Position navigation property so the response includes position name
+            if (player.PositionId.HasValue)
+                await _context.Entry(player).Reference(p => p.Position).LoadAsync();
+
             return player;
         }
 
@@ -49,16 +100,19 @@ namespace MyApi.Services
             if (existingPlayer == null)
                 return null;
 
+            // Only update editable fields; preserve Goals/Assists/Matches (managed by match events)
             existingPlayer.FirstName = player.FirstName;
             existingPlayer.LastName = player.LastName;
             existingPlayer.PositionId = player.PositionId;
-            existingPlayer.Goals = player.Goals;
-            existingPlayer.Assists = player.Assists;
-            existingPlayer.Matches = player.Matches;
             existingPlayer.UpdatedAt = DateTime.UtcNow;
 
             _context.Players.Update(existingPlayer);
             await _context.SaveChangesAsync();
+
+            // Load Position navigation property so the response includes position name
+            if (existingPlayer.PositionId.HasValue)
+                await _context.Entry(existingPlayer).Reference(p => p.Position).LoadAsync();
+
             return existingPlayer;
         }
 
@@ -77,12 +131,39 @@ namespace MyApi.Services
         public async Task<IEnumerable<Player>> GetPlayersByTeamAsync(int teamId)
         {
             // Return players that have played in matches for the given team (as Home/Away via MatchPlayers)
-            return await _context.MatchPlayers
+            var playerIds = await _context.MatchPlayers
+                .AsNoTracking()
                 .Where(mp => mp.TeamId == teamId)
-                .Select(mp => mp.Player)
                 .Distinct()
+                .Select(mp => mp.PlayerId)
+                .ToListAsync();
+
+            var players = await _context.Players
+                .AsNoTracking()
+                .Include(p => p.Position)
+                .Where(p => playerIds.Contains(p.Id))
                 .OrderBy(p => p.Id)
                 .ToListAsync();
+
+            var statsByPlayerId = await GetDynamicPlayerStatsAsync(players.Select(p => p.Id));
+
+            foreach (var player in players)
+            {
+                if (statsByPlayerId.TryGetValue(player.Id, out var stats))
+                {
+                    player.Goals = stats.Goals;
+                    player.Assists = stats.Assists;
+                    player.Matches = stats.Matches;
+                }
+                else
+                {
+                    player.Goals = 0;
+                    player.Assists = 0;
+                    player.Matches = 0;
+                }
+            }
+
+            return players;
         }
 
         public async Task<PlayerStatsDto> GetPlayerStatsAsync(int playerId)
@@ -92,49 +173,102 @@ namespace MyApi.Services
             if (!playerExists)
                 return null;
 
-            // Calculate goals: count of events where eventTypeId == 1 (goal) and playerId matches
-            var goals = await _context.MatchEvents
-                .Where(e => e.PlayerId == playerId && e.EventTypeId == 1)
-                .CountAsync();
-
-            // Calculate assists: count of events where eventTypeId == 2 (assist) and playerId matches
-            var assists = await _context.MatchEvents
-                .Where(e => e.PlayerId == playerId && e.EventTypeId == 2)
-                .CountAsync();
-
-            // Calculate matches played: count distinct matches where player is assigned
-            var matches = await _context.MatchPlayers
-                .Where(mp => mp.PlayerId == playerId)
-                .Select(mp => mp.MatchId)
-                .Distinct()
-                .CountAsync();
+            var statsByPlayerId = await GetDynamicPlayerStatsAsync(new[] { playerId });
+            statsByPlayerId.TryGetValue(playerId, out var stats);
 
             return new PlayerStatsDto
             {
                 PlayerId = playerId,
-                Goals = goals,
-                Assists = assists,
-                Matches = matches
+                Goals = stats?.Goals ?? 0,
+                Assists = stats?.Assists ?? 0,
+                Matches = stats?.Matches ?? 0
             };
         }
 
         public async Task<IEnumerable<PlayerStatsDto>> GetAllPlayersStatsAsync()
         {
-            // Get all players
-            var players = await _context.Players.Select(p => p.Id).ToListAsync();
+            var playerIds = await _context.Players
+                .AsNoTracking()
+                .Select(p => p.Id)
+                .OrderBy(id => id)
+                .ToListAsync();
 
-            var stats = new List<PlayerStatsDto>();
+            var statsByPlayerId = await GetDynamicPlayerStatsAsync(playerIds);
 
-            foreach (var playerId in players)
+            return playerIds.Select(playerId =>
             {
-                var playerStats = await GetPlayerStatsAsync(playerId);
-                if (playerStats != null)
+                statsByPlayerId.TryGetValue(playerId, out var stats);
+                return new PlayerStatsDto
                 {
-                    stats.Add(playerStats);
+                    PlayerId = playerId,
+                    Goals = stats?.Goals ?? 0,
+                    Assists = stats?.Assists ?? 0,
+                    Matches = stats?.Matches ?? 0
+                };
+            });
+        }
+
+        private async Task<Dictionary<int, PlayerDynamicStats>> GetDynamicPlayerStatsAsync(IEnumerable<int> playerIds)
+        {
+            var playerIdList = playerIds.Distinct().ToList();
+
+            if (!playerIdList.Any())
+            {
+                return new Dictionary<int, PlayerDynamicStats>();
+            }
+
+            var eventStats = await _context.MatchEvents
+                .AsNoTracking()
+                .Where(e => playerIdList.Contains(e.PlayerId) && (e.EventTypeId == GoalEventTypeId || e.EventTypeId == AssistEventTypeId))
+                .GroupBy(e => e.PlayerId)
+                .Select(g => new
+                {
+                    PlayerId = g.Key,
+                    Goals = g.Count(e => e.EventTypeId == GoalEventTypeId),
+                    Assists = g.Count(e => e.EventTypeId == AssistEventTypeId)
+                })
+                .ToListAsync();
+
+            var matchStats = await _context.MatchPlayers
+                .AsNoTracking()
+                .Where(mp => playerIdList.Contains(mp.PlayerId))
+                .GroupBy(mp => mp.PlayerId)
+                .Select(g => new
+                {
+                    PlayerId = g.Key,
+                    Matches = g.Select(mp => mp.MatchId).Distinct().Count()
+                })
+                .ToListAsync();
+
+            var statsByPlayerId = playerIdList.ToDictionary(
+                id => id,
+                _ => new PlayerDynamicStats { Goals = 0, Assists = 0, Matches = 0 });
+
+            foreach (var stat in eventStats)
+            {
+                if (statsByPlayerId.TryGetValue(stat.PlayerId, out var value))
+                {
+                    value.Goals = stat.Goals;
+                    value.Assists = stat.Assists;
                 }
             }
 
-            return stats.OrderBy(s => s.PlayerId);
+            foreach (var stat in matchStats)
+            {
+                if (statsByPlayerId.TryGetValue(stat.PlayerId, out var value))
+                {
+                    value.Matches = stat.Matches;
+                }
+            }
+
+            return statsByPlayerId;
+        }
+
+        private sealed class PlayerDynamicStats
+        {
+            public int Goals { get; set; }
+            public int Assists { get; set; }
+            public int Matches { get; set; }
         }
     }
 }

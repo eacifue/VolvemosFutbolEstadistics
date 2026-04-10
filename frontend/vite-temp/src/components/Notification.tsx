@@ -1,3 +1,4 @@
+// Enhanced toast semantics and animation state handling for accessible, fixed-position admin feedback messages.
 import React, { useEffect, useState } from 'react';
 import './Notification.css';
 
@@ -12,7 +13,7 @@ interface NotificationProps {
   type: NotificationType;
   message: string;
   onClose?: () => void;
-  duration?: number; // in milliseconds, 0 means no auto-close
+  duration?: number;
   showCloseButton?: boolean;
   position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center';
   action?: NotificationAction;
@@ -30,9 +31,8 @@ const Notification: React.FC<NotificationProps> = ({
   const [isVisible, setIsVisible] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
 
-  // Smart duration based on type
-  const smartDuration = duration !== undefined 
-    ? duration 
+  const smartDuration = duration !== undefined
+    ? duration
     : type === 'error' ? 6000 : type === 'success' ? 3500 : 4000;
 
   useEffect(() => {
@@ -42,7 +42,7 @@ const Notification: React.FC<NotificationProps> = ({
         setTimeout(() => {
           setIsVisible(false);
           onClose?.();
-        }, 300);
+        }, 220);
       }, smartDuration);
       return () => clearTimeout(timer);
     }
@@ -53,7 +53,7 @@ const Notification: React.FC<NotificationProps> = ({
     setTimeout(() => {
       setIsVisible(false);
       onClose?.();
-    }, 300); // Match animation duration
+    }, 220);
   };
 
   const getIcon = () => {
@@ -68,9 +68,9 @@ const Notification: React.FC<NotificationProps> = ({
 
   const getTitle = () => {
     const titles: Record<NotificationType, string> = {
-      success: '¡Éxito!',
-      error: 'Oops',
-      warning: 'Atención',
+      success: 'Exito',
+      error: 'Error',
+      warning: 'Atencion',
       info: 'Info'
     };
     return titles[type];
@@ -84,17 +84,19 @@ const Notification: React.FC<NotificationProps> = ({
   if (!isVisible) return null;
 
   return (
-    <div className={`notification notification--${type} notification--${position} ${isExiting ? 'notification--exiting' : ''}`}>
-      <div className={`notification__icon notification__icon--${type}`}>
-        {getIcon()}
-      </div>
+    <div
+      className={`notification notification--${type} notification--${position} ${isExiting ? 'notification--exiting' : ''}`}
+      role="status"
+      aria-live="polite"
+    >
+      <div className={`notification__icon notification__icon--${type}`}>{getIcon()}</div>
       <div className="notification__content">
         <div className="notification__header">
           <div className="notification__title">{getTitle()}</div>
           {showCloseButton && (
-            <button 
-              className="notification__close" 
-              onClick={handleClose} 
+            <button
+              className="notification__close"
+              onClick={handleClose}
               aria-label="Cerrar"
               type="button"
             >
@@ -104,11 +106,7 @@ const Notification: React.FC<NotificationProps> = ({
         </div>
         <div className="notification__message">{message}</div>
         {action && (
-          <button 
-            className="notification__action" 
-            onClick={handleAction}
-            type="button"
-          >
+          <button className="notification__action" onClick={handleAction} type="button">
             {action.label}
           </button>
         )}

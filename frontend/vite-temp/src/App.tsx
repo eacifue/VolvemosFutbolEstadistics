@@ -1,6 +1,8 @@
+// Added a content offset wrapper so fixed header navigation does not overlap routed pages.
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
+import AdminRoute from './components/AdminRoute';
 import Home from './pages/Home';
 import Players from './pages/Players';
 import Admin from './pages/Admin';
@@ -9,15 +11,31 @@ import './styles/main.css';
 
 const App: React.FC = () => {
     return (
-        <Router>
+        <>
             <Header />
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/jugadores" element={<Players />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/gestionar-jugadores" element={<ManagePlayers />} />
-            </Routes>
-        </Router>
+            <main className="main-content-offset">
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/jugadores" element={<Players />} />
+                    <Route
+                        path="/admin"
+                        element={
+                            <AdminRoute>
+                                <Admin />
+                            </AdminRoute>
+                        }
+                    />
+                    <Route
+                        path="/gestionar-jugadores"
+                        element={
+                            <AdminRoute>
+                                <ManagePlayers />
+                            </AdminRoute>
+                        }
+                    />
+                </Routes>
+            </main>
+        </>
     );
 };
 

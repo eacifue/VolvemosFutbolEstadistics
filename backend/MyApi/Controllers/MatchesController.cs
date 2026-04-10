@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyApi.DTOs;
 using MyApi.Models;
@@ -29,6 +30,7 @@ public class MatchesController(IMatchService matchService) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<MatchDto>> CreateMatch(CreateMatchDto dto) // ← DTO, no entidad
     {
         var created = await matchService.CreateMatchAsync(dto);
@@ -36,6 +38,7 @@ public class MatchesController(IMatchService matchService) : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<MatchDto>> UpdateMatch(int id, UpdateMatchDto dto) // ← DTO
     {
         var updated = await matchService.UpdateMatchAsync(id, dto);
@@ -43,6 +46,7 @@ public class MatchesController(IMatchService matchService) : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteMatch(int id)
     {
         return await matchService.DeleteMatchAsync(id) ? NoContent() : NotFound();

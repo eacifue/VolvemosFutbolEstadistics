@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyApi.DTOs;
 using MyApi.Models;
@@ -35,6 +36,7 @@ namespace MyApi.Controllers
             return Ok(MapToDto(item));
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<EventTypeDto>> CreateEventType(EventType eventType)
         {
@@ -42,6 +44,7 @@ namespace MyApi.Controllers
             return CreatedAtAction(nameof(GetEventType), new { id = created.Id }, MapToDto(created));
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult<EventTypeDto>> UpdateEventType(int id, EventType eventType)
         {
@@ -50,6 +53,7 @@ namespace MyApi.Controllers
             return Ok(MapToDto(updated));
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEventType(int id)
         {
