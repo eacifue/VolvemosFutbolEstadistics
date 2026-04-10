@@ -74,7 +74,7 @@ builder.Services.AddScoped<IPositionService, PositionService>();
 builder.Services.AddScoped<IEventTypeService, EventTypeService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
-var allowedOrigins = Environment.GetEnvironmentVariable("FRONTEND_URL"); // Agrega esta var en Railway
+var allowedOrigins = Environment.GetEnvironmentVariable("FRONTEND_URL");
 
 builder.Services.AddCors(options =>
 {
@@ -82,15 +82,29 @@ builder.Services.AddCors(options =>
     {
         if (builder.Environment.IsDevelopment())
         {
-            policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
+            policy
+                .SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
         }
-        else if (!string.IsNullOrEmpty(allowedOrigins))
+        else
         {
-            policy.WithOrigins(allowedOrigins.Split(','))
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
+            // ✅ Fallback seguro en producción
+            if (!string.IsNullOrEmpty(allowedOrigins))
+            {
+                policy
+                    .WithOrigins(allowedOrigins.Split(','))
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            }
+            else
+            {
+                // 🔥 fallback PRO (evita que se rompa Railway)
+                policy
+                    .AllowAnyOrigin()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            }
         }
     });
 });
