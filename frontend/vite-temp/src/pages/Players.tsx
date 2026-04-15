@@ -15,11 +15,37 @@ const getPositionClass = (position?: string): string => {
   return 'position-default';
 };
 
+const getPlayerPhoto = (player: Player): string | undefined => {
+  const mediaCandidate = player as Player & {
+    photoUrl?: string;
+    avatarUrl?: string;
+    imageUrl?: string;
+    photo?: string;
+    image?: string;
+  };
+
+  const possibleUrls = [
+    mediaCandidate.photoUrl,
+    mediaCandidate.avatarUrl,
+    mediaCandidate.imageUrl,
+    mediaCandidate.photo,
+    mediaCandidate.image,
+  ];
+
+  return possibleUrls.find((url) => typeof url === 'string' && url.trim().length > 0);
+};
+
+const getPlayerCardRating = (player: Player): number => {
+  const impact = (player.goals * 4) + (player.assists * 3) + player.matches;
+  return Math.min(99, Math.max(50, Math.round(50 + impact * 0.8)));
+};
+
 const Players: React.FC = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
 
   const fetchPlayers = async () => {
     try {
@@ -31,6 +57,12 @@ const Players: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    void fetchPlayers();
   };
 
   useEffect(() => {
@@ -63,11 +95,40 @@ const Players: React.FC = () => {
     );
   }, [players, searchTerm]);
 
-  if (loading) return <div className="container page-feedback">Cargando jugadores...</div>;
-  if (error) return <div className="container page-feedback page-feedback-error">{error}</div>;
+  if (loading) {
+    return (
+      <div className="players-page" aria-busy="true" aria-live="polite" aria-label="Cargando jugadores">
+        <section className="players-header players-header-skeleton" aria-hidden="true" />
+        <section className="all-players">
+          <div className="container">
+            <div className="skeleton" style={{ height: '56px', borderRadius: 'var(--radius-lg)', marginBottom: '1.5rem' }} />
+            <div className="players-grid">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="skeleton" style={{ borderRadius: 'var(--radius-lg)', minHeight: '290px' }} />
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="container status-shell">
+        <div className="status-card status-card-error fade-in">
+          <span className="status-icon" aria-hidden="true">⚠️</span>
+          <h3>No pudimos cargar los jugadores</h3>
+          <p>{error}</p>
+          <button type="button" className="btn btn-primary" onClick={handleRetry}>
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="players-page">
+    <div className="players-page page-enter">
       <section className="players-header">
         <div className="container">
           <h1>Nuestros Jugadores</h1>
@@ -102,10 +163,33 @@ const Players: React.FC = () => {
               {filteredPlayers.map((player) => {
                 const initials = `${player.firstName.charAt(0)}${player.lastName.charAt(0)}`.toUpperCase();
                 const positionName = player.position?.name ?? 'Sin posicion';
+                const photoUrl = getPlayerPhoto(player);
+                const hasPhoto = Boolean(photoUrl) && !imageErrors[player.id];
+                const rating = getPlayerCardRating(player);
                 return (
-                  <article key={player.id} className="player-card-premium card">
+                  <article key={player.id} className="player-card-premium card fade-in">
                     <div className="card-header">
-                      <div className="player-avatar-large">{initials}</div>
+                      <span className="card-rating-badge" aria-label={`Rating ${rating}`}>
+                        {rating}
+                      </span>
+
+                      <div className="player-photo-shell">
+                        {hasPhoto ? (
+                          <img
+                            src={photoUrl}
+                            alt={`Foto de ${player.firstName} ${player.lastName}`}
+                            className="player-photo"
+                            loading="lazy"
+                            onError={() => {
+                              setImageErrors((prev) => ({ ...prev, [player.id]: true }));
+                            }}
+                          />
+                        ) : (
+                          <div className="player-photo-fallback player-avatar-large" aria-hidden="true">
+                            {initials}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="card-body">
@@ -138,6 +222,10 @@ const Players: React.FC = () => {
                     </div>
 
                     <div className="card-footer">
+                      <div className="player-meta">
+                        <span>Ficha #{player.id}</span>
+                        <span>Rating: {rating}</span>
+                      </div>
                       <div className="progress-bar">
                         <div className="progress-fill" style={{ width: `${Math.min((player.goals + player.assists) * 8, 100)}%` }}></div>
                       </div>
@@ -148,8 +236,8 @@ const Players: React.FC = () => {
               })}
             </div>
           ) : (
-            <div className="empty-state">
-              <div className="empty-icon">⚽</div>
+            <div className="empty-state status-card status-card-empty fade-in">
+              <div className="status-icon" aria-hidden="true">⚽</div>
               <h3>No encontramos jugadores</h3>
               <p>Prueba otra busqueda o revisa el panel para registrar nuevos jugadores.</p>
               <Link to="/admin" className="btn btn-primary">Ir a administracion</Link>

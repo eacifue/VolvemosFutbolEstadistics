@@ -117,11 +117,35 @@ const ManagePlayers: React.FC = () => {
       p.id.toString().includes(searchTerm)
   );
 
-  if (loading) return <div className="container page-feedback">Cargando jugadores...</div>;
-  if (error) return <div className="container page-feedback page-feedback-error">{error}</div>;
+  if (loading) {
+    return (
+      <div className="container status-shell">
+        <div className="status-card fade-in">
+          <span className="status-icon" aria-hidden="true">⏳</span>
+          <h3>Cargando gestion de jugadores</h3>
+          <p>Preparando plantilla, posiciones y acciones administrativas.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container status-shell">
+        <div className="status-card status-card-error fade-in">
+          <span className="status-icon" aria-hidden="true">⚠️</span>
+          <h3>No se pudo cargar la plantilla</h3>
+          <p>{error}</p>
+          <button className="btn btn-primary" onClick={() => { setLoading(true); setError(null); void loadData(); }} type="button">
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="manage-players-page">
+    <div className="manage-players-page page-enter">
       {deleteCandidate && (
         <div className="confirmation-modal-overlay" onClick={() => setDeleteCandidate(null)}>
           <div className="confirmation-dialog" onClick={(e) => e.stopPropagation()}>
@@ -145,6 +169,11 @@ const ManagePlayers: React.FC = () => {
         <div className="container">
           <h1>Gestion de Jugadores</h1>
           <p>Registra, edita y organiza la plantilla oficial del clasico.</p>
+          <div className="manage-header-chips" aria-label="Resumen de jugadores">
+            <span className="manage-chip">Total jugadores: {players.length}</span>
+            <span className="manage-chip">Posiciones: {positions.length}</span>
+            <span className="manage-chip manage-chip-active">Filtrados: {filteredPlayers.length}</span>
+          </div>
         </div>
       </section>
 

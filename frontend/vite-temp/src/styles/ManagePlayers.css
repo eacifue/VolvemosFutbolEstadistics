@@ -16,7 +16,17 @@
 .players-header {
   background: linear-gradient(135deg, var(--color-primary), #0b3528);
   color: #f8fafc;
+  position: relative;
+  overflow: hidden;
   padding: var(--space-12) 0 var(--space-8);
+}
+
+.players-header::after {
+  background: radial-gradient(circle at 80% 24%, rgba(255, 255, 255, 0.2), transparent 58%);
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
 }
 
 .players-header h1 {
@@ -29,6 +39,30 @@
   margin-top: var(--space-2);
 }
 
+.manage-header-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.manage-chip {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--radius-full);
+  color: #e5fff3;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 6px var(--space-3);
+}
+
+.manage-chip-active {
+  background: rgba(212, 175, 55, 0.28);
+  border-color: rgba(245, 209, 95, 0.8);
+  color: #fff7df;
+}
+
 .manage-layout-section {
   padding: var(--space-8) 0 var(--space-12);
 }
@@ -37,6 +71,15 @@
   display: grid;
   gap: var(--space-6);
   grid-template-columns: 40% 60%;
+}
+
+.manage-form-panel,
+.manage-table-panel,
+.players-list-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .manage-form-panel,
@@ -85,9 +128,6 @@
 }
 
 .players-list-section {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   padding: var(--space-6);
 }
@@ -107,10 +147,16 @@
   background: transparent;
   border: 0;
   min-height: 44px;
+  touch-action: manipulation;
 }
 
 .search-input:focus {
   box-shadow: none;
+}
+
+.search-input:focus-visible {
+  outline: 3px solid rgba(11, 61, 46, 0.22);
+  outline-offset: 2px;
 }
 
 .search-count {
@@ -165,6 +211,10 @@
   background: #eef6ef;
 }
 
+.players-table tbody tr:focus-within {
+  background: #e2f3e6;
+}
+
 .player-id {
   align-items: center;
   background: var(--color-primary);
@@ -211,6 +261,7 @@
   min-height: 44px;
   min-width: 44px;
   padding: var(--space-2) var(--space-3);
+  touch-action: manipulation;
 }
 
 .btn-edit {
@@ -221,6 +272,12 @@
 
 .btn-edit:hover {
   background: #fcd34d;
+}
+
+.btn-edit:focus-visible,
+.btn-delete:focus-visible {
+  outline: 3px solid rgba(11, 61, 46, 0.24);
+  outline-offset: 2px;
 }
 
 .btn-delete {
@@ -289,6 +346,15 @@
 }
 
 @media (max-width: 767px) {
+  .manage-header-chips {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .manage-chip {
+    width: fit-content;
+  }
+
   .search-bar {
     align-items: stretch;
     flex-wrap: wrap;
@@ -311,6 +377,10 @@
   .btn-delete {
     min-width: 44px;
     padding: var(--space-2);
+  }
+
+  .action-buttons {
+    gap: var(--space-1);
   }
 
   .text-label {

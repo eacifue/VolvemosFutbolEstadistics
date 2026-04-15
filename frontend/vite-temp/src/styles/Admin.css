@@ -8,6 +8,16 @@
   background: linear-gradient(135deg, var(--color-primary), #0c3327);
   color: #f8fafc;
   padding: var(--space-12) 0 var(--space-8);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-header::after {
+  background: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.18), transparent 55%);
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
 }
 
 .admin-header h1 {
@@ -18,6 +28,31 @@
 .admin-header p {
   color: #d1fae5;
   margin-top: var(--space-2);
+}
+
+.admin-header-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.admin-chip {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: var(--radius-full);
+  color: #e5fff3;
+  display: inline-flex;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 6px var(--space-3);
+}
+
+.admin-chip-active {
+  background: rgba(212, 175, 55, 0.26);
+  border-color: rgba(245, 209, 95, 0.8);
+  color: #fff7df;
 }
 
 .admin-content {
@@ -33,31 +68,88 @@
 
 .tab-btn {
   align-items: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
+  background: #f7faf8;
+  border: 1px solid #d7e2da;
+  border-radius: var(--radius-lg);
   color: var(--color-text);
   cursor: pointer;
   display: inline-flex;
   font-size: var(--font-size-sm);
   font-weight: 700;
+  gap: var(--space-3);
   min-height: 44px;
-  padding: var(--space-2) var(--space-4);
+  min-width: 260px;
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  touch-action: manipulation;
 }
 
 .tab-btn:hover {
   border-color: var(--color-primary-light);
   color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.tab-btn:focus-visible {
+  outline: 3px solid rgba(11, 61, 46, 0.3);
+  outline-offset: 2px;
 }
 
 .tab-btn.active {
-  background: var(--color-accent);
-  border-color: #be9b2f;
+  background: linear-gradient(135deg, #fff4c9, #f6df84);
+  border-color: #cfad39;
+  box-shadow: 0 12px 24px rgba(212, 175, 55, 0.22);
   color: #1b2d25;
 }
 
+.tab-icon {
+  align-items: center;
+  background: rgba(11, 61, 46, 0.1);
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.tab-glyph {
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.tab-btn.active .tab-icon {
+  background: rgba(11, 61, 46, 0.18);
+}
+
+.tab-text-wrap {
+  display: grid;
+  gap: 2px;
+}
+
+.tab-text-wrap strong {
+  font-size: var(--font-size-sm);
+  line-height: 1.2;
+}
+
+.tab-text-wrap small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
 .tab-content {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.65), rgba(249, 252, 250, 0.95));
+  border: 1px solid #d9e5dd;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4);
   position: relative;
+}
+
+.tab-pane[hidden] {
+  display: none !important;
 }
 
 .tab-pane {
@@ -65,7 +157,36 @@
 }
 
 @media (max-width: 639px) {
+  .admin-header-chips {
+    gap: var(--space-1);
+  }
+
+  .admin-chip {
+    font-size: 0.7rem;
+  }
+
   .tab-btn {
+    align-items: flex-start;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: var(--space-2) var(--space-3);
     width: 100%;
+  }
+
+  .tab-icon {
+    height: 30px;
+    width: 30px;
+  }
+
+  .tab-text-wrap strong {
+    font-size: 0.8rem;
+  }
+
+  .tab-text-wrap small {
+    font-size: 0.68rem;
+  }
+
+  .tab-content {
+    padding: var(--space-3);
   }
 }

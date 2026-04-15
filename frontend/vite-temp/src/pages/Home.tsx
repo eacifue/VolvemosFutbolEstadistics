@@ -28,6 +28,12 @@ const getResultClass = (match: RecentMatchDto): string => {
   return 'result-draw';
 };
 
+const getEventTypeLabel = (eventTypeId: number): string => {
+  if (eventTypeId === 1) return 'Gol';
+  if (eventTypeId === 2) return 'Asistencia';
+  return 'Evento';
+};
+
 const playerInitials = (player: TopPlayerDto): string => {
   return `${player.firstName.charAt(0)}${player.lastName.charAt(0)}`.toUpperCase();
 };
@@ -42,6 +48,28 @@ const getRankClass = (rank: number): string => {
   if (rank === 3) return 'rank-bronze';
   return 'rank-default';
 };
+
+interface StatHeroCard {
+  key: string;
+  value: string;
+  label: string;
+  icon: string;
+  colorClass: string;
+}
+
+const buildStatCards = (data: DashboardDto): StatHeroCard[] => [
+  { key: 'total', value: String(data.totalMatches), label: 'Partidos Jugados', icon: '🏟️', colorClass: 'stat-total' },
+  { key: 'white', value: String(data.whiteTeamWins), label: 'Victorias Blanco', icon: '⚪', colorClass: 'stat-white' },
+  { key: 'black', value: String(data.blackTeamWins), label: 'Victorias Negro', icon: '⚫', colorClass: 'stat-black' },
+  { key: 'draws', value: String(data.draws), label: 'Empates', icon: '🤝', colorClass: 'stat-draw' },
+  {
+    key: 'diff',
+    value: data.goalDifference > 0 ? `+${data.goalDifference}` : String(data.goalDifference),
+    label: 'Diferencia de Gol',
+    icon: '⚽',
+    colorClass: data.goalDifference > 0 ? 'stat-positive' : data.goalDifference < 0 ? 'stat-negative' : 'stat-draw',
+  },
+];
 
 const Home: React.FC = () => {
   const [data, setData] = useState<DashboardDto | null>(null);
@@ -58,6 +86,12 @@ const Home: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    void fetchDashboard();
   };
 
   useEffect(() => {
@@ -89,17 +123,155 @@ const Home: React.FC = () => {
   }, [data?.topAssists]);
 
   if (loading) {
-    return <div className="container page-feedback">Cargando estadisticas...</div>;
+    return (
+      <div className="home" aria-busy="true" aria-live="polite" aria-label="Cargando estadisticas">
+        <section className="stats-hero">
+          <div className="container">
+            <div className="stats-hero-grid">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="stat-hero-card skeleton-dark" style={{ minHeight: '128px' }} />
+              ))}
+            </div>
+          </div>
+        </section>
+        <section className="latest-matches">
+          <div className="container">
+            <div className="skeleton" style={{ height: '2rem', width: '220px', marginBottom: '1.5rem', borderRadius: '0.5rem' }} />
+            <div className="grid matches-grid">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="skeleton" style={{ borderRadius: '1rem', minHeight: '280px' }} />
+              ))}
+            </div>
+          </div>
+        </section>
+        <section className="highlights" style={{ padding: '3rem 0' }}>
+          <div className="container">
+            <div className="skeleton" style={{ height: '2rem', width: '200px', marginBottom: '1.5rem', borderRadius: '0.5rem' }} />
+            <div style={{ display: 'grid', gap: '1.5rem', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+              {[1, 2].map((i) => (
+                <div key={i} className="skeleton" style={{ borderRadius: '1rem', minHeight: '180px' }} />
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="container page-feedback page-feedback-error">{error}</div>;
+    return (
+      <div className="container status-shell">
+        <div className="status-card status-card-error fade-in">
+          <span className="status-icon" aria-hidden="true">⚠️</span>
+          <h3>No se pudo cargar el dashboard</h3>
+          <p>{error}</p>
+          <button type="button" className="btn btn-primary" onClick={handleRetry}>
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="container status-shell">
+        <div className="status-card status-card-empty fade-in">
+          <span className="status-icon" aria-hidden="true">📊</span>
+          <h3>Aun no hay datos para mostrar</h3>
+          <p>Cuando se registren partidos y eventos, aqui veras las estadisticas.</p>
+          <Link to="/admin" className="btn btn-secondary">Ir a Admin</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const statCards = buildStatCards(data);
+
+  /* Wins distribution percentages */
+  const totalForPct = Math.max(data.totalMatches, 1);
+  const whiteWinsPct = Math.round((data.whiteTeamWins / totalForPct) * 100);
+  const blackWinsPct = Math.round((data.blackTeamWins / totalForPct) * 100);
+  const drawPct = 100 - whiteWinsPct - blackWinsPct;
+
+  /* Head-to-head rows */
+  const whiteTeam = data.teamComparison.find((t) => t.id === 1);
+  const blackTeam = data.teamComparison.find((t) => t.id !== 1);
+
+  const h2hRows: { label: string; white: number | string; black: number | string }[] = whiteTeam && blackTeam
+    ? [
+        { label: 'Victorias', white: whiteTeam.wins, black: blackTeam.wins },
+        { label: 'Empates', white: whiteTeam.draws, black: blackTeam.draws },
+        { label: 'Derrotas', white: whiteTeam.losses, black: blackTeam.losses },
+        { label: 'Goles a Favor', white: whiteTeam.goalsFor, black: blackTeam.goalsFor },
+        { label: 'Goles en Contra', white: whiteTeam.goalsAgainst, black: blackTeam.goalsAgainst },
+      ]
+    : [];
 
   return (
-    <div className="home">
+    <div className="home page-enter">
+      {/* STATS HERO — dark sports band at top */}
+      <section className="stats-hero" aria-label="Estadísticas generales de la temporada">
+        <div className="container">
+          <div className="stats-hero-grid">
+            {statCards.map((card, i) => (
+              <article key={card.key} className={`stat-hero-card ${card.colorClass} fade-in fade-in-${i + 1}`}>
+                <span className="stat-hero-icon" aria-hidden="true">{card.icon}</span>
+                <strong className="stat-hero-value">{card.value}</strong>
+                <span className="stat-hero-label">{card.label}</span>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* WINS DISTRIBUTION — segmented bar */}
+      {data.totalMatches > 0 && (
+        <section className="wins-distribution" aria-label="Distribucion de resultados">
+          <div className="container">
+            <div className="dist-bar-wrap">
+              <div className="dist-bar" role="img" aria-label={`Blanco ${whiteWinsPct}%, Empates ${drawPct}%, Negro ${blackWinsPct}%`}>
+                {whiteWinsPct > 0 && (
+                  <span
+                    className="dist-segment dist-white"
+                    style={{ width: `${whiteWinsPct}%` }}
+                    title={`Blanco gana ${whiteWinsPct}%`}
+                  />
+                )}
+                {drawPct > 0 && (
+                  <span
+                    className="dist-segment dist-draw"
+                    style={{ width: `${drawPct}%` }}
+                    title={`Empates ${drawPct}%`}
+                  />
+                )}
+                {blackWinsPct > 0 && (
+                  <span
+                    className="dist-segment dist-black"
+                    style={{ width: `${blackWinsPct}%` }}
+                    title={`Negro gana ${blackWinsPct}%`}
+                  />
+                )}
+              </div>
+              <div className="dist-labels">
+                <span className="dist-label-white">
+                  <span className="dist-dot dist-dot-white" />
+                  Blanco {whiteWinsPct}%
+                </span>
+                <span className="dist-label-draw">
+                  <span className="dist-dot dist-dot-draw" />
+                  Empates {drawPct}%
+                </span>
+                <span className="dist-label-black">
+                  <span className="dist-dot dist-dot-black" />
+                  Negro {blackWinsPct}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="latest-matches">
         <div className="container">
           <div className="section-title">
@@ -133,9 +305,16 @@ const Home: React.FC = () => {
                 const homeWinner = match.winner === 'Home';
                 const awayWinner = match.winner === 'Away';
                 const resultBadge = getResultBadge(match);
+                const homeKeyEvents = match.events
+                  .filter((e) => e.teamId === match.homeTeamId && (e.eventTypeId === 1 || e.eventTypeId === 2))
+                  .slice(0, 4);
+                const awayKeyEvents = match.events
+                  .filter((e) => e.teamId === match.awayTeamId && (e.eventTypeId === 1 || e.eventTypeId === 2))
+                  .slice(0, 4);
+                const totalKeyEvents = homeKeyEvents.length + awayKeyEvents.length;
 
                 return (
-                  <article key={match.id} className={`card match-card ${getResultClass(match)}`}>
+                  <article key={match.id} className={`card match-card ${getResultClass(match)} fade-in`}>
                     <header className="match-header">
                       <div className="match-header-left">
                         <span className="match-date">{new Date(match.matchDate).toLocaleDateString('es-CO')}</span>
@@ -145,6 +324,7 @@ const Home: React.FC = () => {
                             HOY
                           </span>
                         )}
+                        <span className="match-meta-pill">{totalKeyEvents} eventos clave</span>
                       </div>
                       <span className="badge badge-dark">{resultBadge}</span>
                     </header>
@@ -163,17 +343,37 @@ const Home: React.FC = () => {
                       </div>
                     </div>
 
+                    <div className="score-stage">Resultado Final</div>
+
                     <div className="match-stats">
-                      <div className="team-details">
+                      <div className="team-details team-details-white">
                         <p className="team-label"><span className="team-color-dot team-color-white"></span>Equipo Blanco</p>
-                        <p className="stats-item ellipsis"><strong>⚽ Goles:</strong> {homeGoals.length > 0 ? homeGoals.join(', ') : 'Ninguno'}</p>
-                        <p className="stats-item ellipsis"><strong>🎯 Asistencias:</strong> {homeAssists.length > 0 ? homeAssists.join(', ') : 'Ninguna'}</p>
+                        <p className="stats-item ellipsis"><strong>Goles:</strong> {homeGoals.length > 0 ? homeGoals.join(', ') : 'Ninguno'}</p>
+                        <p className="stats-item ellipsis"><strong>Asistencias:</strong> {homeAssists.length > 0 ? homeAssists.join(', ') : 'Ninguna'}</p>
+                        <div className="events-stack" aria-label="Eventos clave equipo blanco">
+                          {homeKeyEvents.length > 0 ? homeKeyEvents.map((event) => (
+                            <span key={event.id} className="event-chip event-chip-white ellipsis">
+                              {getEventTypeLabel(event.eventTypeId)}: {event.playerFullName}
+                            </span>
+                          )) : (
+                            <span className="event-chip event-chip-empty">Sin eventos clave</span>
+                          )}
+                        </div>
                       </div>
                       <div className="divider"></div>
-                      <div className="team-details">
+                      <div className="team-details team-details-black">
                         <p className="team-label"><span className="team-color-dot team-color-black"></span>Equipo Negro</p>
-                        <p className="stats-item ellipsis"><strong>⚽ Goles:</strong> {awayGoals.length > 0 ? awayGoals.join(', ') : 'Ninguno'}</p>
-                        <p className="stats-item ellipsis"><strong>🎯 Asistencias:</strong> {awayAssists.length > 0 ? awayAssists.join(', ') : 'Ninguna'}</p>
+                        <p className="stats-item ellipsis"><strong>Goles:</strong> {awayGoals.length > 0 ? awayGoals.join(', ') : 'Ninguno'}</p>
+                        <p className="stats-item ellipsis"><strong>Asistencias:</strong> {awayAssists.length > 0 ? awayAssists.join(', ') : 'Ninguna'}</p>
+                        <div className="events-stack" aria-label="Eventos clave equipo negro">
+                          {awayKeyEvents.length > 0 ? awayKeyEvents.map((event) => (
+                            <span key={event.id} className="event-chip event-chip-black ellipsis">
+                              {getEventTypeLabel(event.eventTypeId)}: {event.playerFullName}
+                            </span>
+                          )) : (
+                            <span className="event-chip event-chip-empty">Sin eventos clave</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </article>
@@ -250,81 +450,69 @@ const Home: React.FC = () => {
       <section className="team-stats">
         <div className="container">
           <div className="section-title">
-            <h2>Comparativa de Equipos</h2>
-            <p>Rendimiento cara a cara entre ambos equipos.</p>
+            <h2>Cara a Cara</h2>
+            <p>Comparativa directa entre Equipo Blanco y Equipo Negro.</p>
           </div>
 
-          <div className="dashboard-overview card">
-            <div className="overview-grid">
-              <article className="overview-item">
-                <span className="overview-label">Partidos jugados</span>
-                <strong className="overview-value">{data.totalMatches}</strong>
-              </article>
-              <article className="overview-item overview-white">
-                <span className="overview-label">Ganados blanco</span>
-                <strong className="overview-value">{data.whiteTeamWins}</strong>
-              </article>
-              <article className="overview-item overview-black">
-                <span className="overview-label">Ganados negro</span>
-                <strong className="overview-value">{data.blackTeamWins}</strong>
-              </article>
-              <article className="overview-item overview-draw">
-                <span className="overview-label">Empates</span>
-                <strong className="overview-value">{data.draws}</strong>
-              </article>
-              <article className="overview-item overview-diff">
-                <span className="overview-label">Diferencia de gol</span>
-                <strong className="overview-value">{data.goalDifference > 0 ? `+${data.goalDifference}` : data.goalDifference}</strong>
-              </article>
-            </div>
-
-            <div className="comparison-bars" aria-label="Comparativo de goles blanco vs negro">
-              <div className="comparison-row">
-                <span className="comparison-team"><span className="team-color-dot team-color-white"></span>Blanco</span>
-                <div className="comparison-track"><span className="comparison-fill comparison-fill-white" style={{ width: `${whiteBar}%` }}></span></div>
-                <span className="comparison-value">{whiteGoals}</span>
+          {h2hRows.length > 0 ? (
+            <div className="h2h-panel card fade-in">
+              {/* Team headers */}
+              <div className="h2h-header">
+                <div className="h2h-team h2h-team-white">
+                  <span className="h2h-team-dot h2h-dot-white" />
+                  <span className="h2h-team-name">EQUIPO BLANCO</span>
+                </div>
+                <div className="h2h-center-col" aria-hidden="true">VS</div>
+                <div className="h2h-team h2h-team-black">
+                  <span className="h2h-team-name">EQUIPO NEGRO</span>
+                  <span className="h2h-team-dot h2h-dot-black" />
+                </div>
               </div>
-              <div className="comparison-row">
-                <span className="comparison-team"><span className="team-color-dot team-color-black"></span>Negro</span>
-                <div className="comparison-track"><span className="comparison-fill comparison-fill-black" style={{ width: `${blackBar}%` }}></span></div>
-                <span className="comparison-value">{blackGoals}</span>
+
+              {/* Data rows */}
+              {h2hRows.map((row) => {
+                const wVal = Number(row.white);
+                const bVal = Number(row.black);
+                const whiteLeads = wVal > bVal;
+                const blackLeads = bVal > wVal;
+                return (
+                  <div key={row.label} className="h2h-row">
+                    <strong className={`h2h-value h2h-value-white ${whiteLeads ? 'h2h-leader' : ''}`}>
+                      {row.white}
+                    </strong>
+                    <span className="h2h-row-label">{row.label}</span>
+                    <strong className={`h2h-value h2h-value-black ${blackLeads ? 'h2h-leader' : ''}`}>
+                      {row.black}
+                    </strong>
+                  </div>
+                );
+              })}
+
+              {/* Goals comparison bars */}
+              <div className="h2h-bars">
+                <div className="h2h-bar-row">
+                  <span className="h2h-bar-label">Blanco</span>
+                  <div className="h2h-bar-track">
+                    <span className="h2h-bar-fill h2h-fill-white" style={{ width: `${whiteBar}%` }} />
+                  </div>
+                  <span className="h2h-bar-val">{whiteGoals} goles</span>
+                </div>
+                <div className="h2h-bar-row">
+                  <span className="h2h-bar-label">Negro</span>
+                  <div className="h2h-bar-track">
+                    <span className="h2h-bar-fill h2h-fill-black" style={{ width: `${blackBar}%` }} />
+                  </div>
+                  <span className="h2h-bar-val">{blackGoals} goles</span>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="stats-comparison">
-            {data.teamComparison.map((team) => {
-              const rival = data.teamComparison.find((t) => t.id !== team.id);
-              const goalsTotal = (team.goalsFor || 0) + (rival?.goalsFor || 0) || 1;
-              const goalsWidth = Math.max(10, (team.goalsFor / goalsTotal) * 100);
-
-              return (
-                <article key={team.id} className="team-stats-section card">
-                  <h3 className={`team-band ${team.id === 1 ? 'band-white' : 'band-black'}`}>
-                    <span className={`team-color-dot ${team.id === 1 ? 'team-color-white' : 'team-color-black'}`}></span>
-                    {team.name}
-                  </h3>
-
-                  <div className="stats-grid">
-                    <div className="stat-box"><div className="stat-number">{team.matchesPlayed}</div><div className="stat-label">🏆 Partidos</div></div>
-                    <div className="stat-box"><div className="stat-number">{team.wins}</div><div className="stat-label">Victorias</div></div>
-                    <div className="stat-box"><div className="stat-number">{team.draws}</div><div className="stat-label">Empates</div></div>
-                    <div className="stat-box"><div className="stat-number">{team.losses}</div><div className="stat-label">Derrotas</div></div>
-                  </div>
-
-                  <div className="goals-visual player-stats">
-                    <div className="goals-legend stat">
-                      <span>⚽ GF: {team.goalsFor}</span>
-                      <span>🛡️ GC: {team.goalsAgainst}</span>
-                    </div>
-                    <div className="goals-bar-track stat">
-                      <span className={`goals-bar-fill ${team.id === 1 ? 'fill-white' : 'fill-black'}`} style={{ width: `${goalsWidth}%` }}></span>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+          ) : (
+            <div className="empty-state-card">
+              <p className="empty-state-icon">📊</p>
+              <h3>Sin estadísticas aun</h3>
+              <p>Los datos de comparativa apareceran una vez que se registren partidos.</p>
+            </div>
+          )}
         </div>
       </section>
 

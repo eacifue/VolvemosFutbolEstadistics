@@ -212,9 +212,11 @@ const MatchManager: React.FC = () => {
 
   const whitePlayers = selectedMatch?.matchPlayers.filter((mp) => mp.teamId === 1) || [];
   const blackPlayers = selectedMatch?.matchPlayers.filter((mp) => mp.teamId === 2) || [];
+  const selectedEventsCount = selectedMatch?.events?.length ?? 0;
+  const selectedPlayersCount = selectedMatch?.matchPlayers?.length ?? 0;
 
   return (
-    <div className="match-manager">
+    <div className="match-manager page-enter">
       <div className="container">
         {notification.show && (
           <Notification
@@ -249,7 +251,17 @@ const MatchManager: React.FC = () => {
           </div>
         )}
 
-        <h1>Match Manager</h1>
+        <header className="manager-head">
+          <div>
+            <h1>Gestion de Partidos</h1>
+            <p className="manager-subtitle">Administra partidos, plantillas y eventos con flujo rapido.</p>
+          </div>
+          <div className="manager-stats" aria-label="Resumen del gestor de partidos">
+            <span className="manager-stat-pill">Partidos: {matches.length}</span>
+            <span className="manager-stat-pill">Jugadores en partido: {selectedPlayersCount}</span>
+            <span className="manager-stat-pill">Eventos: {selectedEventsCount}</span>
+          </div>
+        </header>
 
         <MatchCreator
           onCreate={handleCreateMatch}
