@@ -38,12 +38,16 @@ namespace MyApi.Services
                     player.Goals = stats.Goals;
                     player.Assists = stats.Assists;
                     player.Matches = stats.Matches;
+                    player.GoalsPerGame = stats.GoalsPerGame;
+                    player.Wins = stats.Wins;
+                    player.Losses = stats.Losses;
+                    player.Draws = stats.Draws;
+                    player.GoalStreak = stats.GoalStreak;
+                    player.NoGoalStreak = stats.NoGoalStreak;
                 }
                 else
                 {
-                    player.Goals = 0;
-                    player.Assists = 0;
-                    player.Matches = 0;
+                    ApplyZeroStats(player);
                 }
             }
 
@@ -68,12 +72,16 @@ namespace MyApi.Services
                 player.Goals = stats.Goals;
                 player.Assists = stats.Assists;
                 player.Matches = stats.Matches;
+                player.GoalsPerGame = stats.GoalsPerGame;
+                player.Wins = stats.Wins;
+                player.Losses = stats.Losses;
+                player.Draws = stats.Draws;
+                player.GoalStreak = stats.GoalStreak;
+                player.NoGoalStreak = stats.NoGoalStreak;
             }
             else
             {
-                player.Goals = 0;
-                player.Assists = 0;
-                player.Matches = 0;
+                ApplyZeroStats(player);
             }
 
             return player;
@@ -154,16 +162,51 @@ namespace MyApi.Services
                     player.Goals = stats.Goals;
                     player.Assists = stats.Assists;
                     player.Matches = stats.Matches;
+                    player.GoalsPerGame = stats.GoalsPerGame;
+                    player.Wins = stats.Wins;
+                    player.Losses = stats.Losses;
+                    player.Draws = stats.Draws;
+                    player.GoalStreak = stats.GoalStreak;
+                    player.NoGoalStreak = stats.NoGoalStreak;
                 }
                 else
                 {
-                    player.Goals = 0;
-                    player.Assists = 0;
-                    player.Matches = 0;
+                    ApplyZeroStats(player);
                 }
             }
 
             return players;
+        }
+
+        public async Task<decimal> GetGoalsPerGame(int playerId)
+        {
+            var statsByPlayerId = await GetDynamicPlayerStatsAsync(new[] { playerId });
+            return statsByPlayerId.TryGetValue(playerId, out var stats) ? stats.GoalsPerGame : 0m;
+        }
+
+        public async Task<PlayerMatchResultsDto> GetMatchResults(int playerId)
+        {
+            var statsByPlayerId = await GetDynamicPlayerStatsAsync(new[] { playerId });
+            return statsByPlayerId.TryGetValue(playerId, out var stats)
+                ? new PlayerMatchResultsDto
+                {
+                    Wins = stats.Wins,
+                    Losses = stats.Losses,
+                    Draws = stats.Draws
+                }
+                : new PlayerMatchResultsDto();
+        }
+
+        public async Task<int> GetGoalStreak(int playerId)
+        {
+            var statsByPlayerId = await GetDynamicPlayerStatsAsync(new[] { playerId });
+            return statsByPlayerId.TryGetValue(playerId, out var stats) ? stats.GoalStreak : 0;
+        }
+
+        public async Task<int> GetNoGoalStreak(int playerId)
+        {
+            var statsByPlayerId = await GetDynamicPlayerStatsAsync(new[] { playerId });
+            return statsByPlayerId.TryGetValue(playerId, out var stats) ? stats.NoGoalStreak : 0;
         }
 
         public async Task<PlayerStatsDto> GetPlayerStatsAsync(int playerId)
@@ -181,7 +224,13 @@ namespace MyApi.Services
                 PlayerId = playerId,
                 Goals = stats?.Goals ?? 0,
                 Assists = stats?.Assists ?? 0,
-                Matches = stats?.Matches ?? 0
+                Matches = stats?.Matches ?? 0,
+                GoalsPerGame = stats?.GoalsPerGame ?? 0m,
+                Wins = stats?.Wins ?? 0,
+                Losses = stats?.Losses ?? 0,
+                Draws = stats?.Draws ?? 0,
+                GoalStreak = stats?.GoalStreak ?? 0,
+                NoGoalStreak = stats?.NoGoalStreak ?? 0
             };
         }
 
@@ -203,7 +252,13 @@ namespace MyApi.Services
                     PlayerId = playerId,
                     Goals = stats?.Goals ?? 0,
                     Assists = stats?.Assists ?? 0,
-                    Matches = stats?.Matches ?? 0
+                    Matches = stats?.Matches ?? 0,
+                    GoalsPerGame = stats?.GoalsPerGame ?? 0m,
+                    Wins = stats?.Wins ?? 0,
+                    Losses = stats?.Losses ?? 0,
+                    Draws = stats?.Draws ?? 0,
+                    GoalStreak = stats?.GoalStreak ?? 0,
+                    NoGoalStreak = stats?.NoGoalStreak ?? 0
                 };
             });
         }
@@ -240,9 +295,73 @@ namespace MyApi.Services
                 })
                 .ToListAsync();
 
+            var playerMatchRows = await _context.MatchPlayers
+                .AsNoTracking()
+                .Where(mp => playerIdList.Contains(mp.PlayerId))
+                .Select(mp => new PlayerMatchRow
+                {
+                    PlayerId = mp.PlayerId,
+                    MatchId = mp.MatchId,
+                    TeamId = mp.TeamId,
+                    MatchDate = mp.Match != null ? mp.Match.MatchDate : DateTime.MinValue
+                })
+                .ToListAsync();
+
+            var matchIds = playerMatchRows
+                .Select(row => row.MatchId)
+                .Distinct()
+                .ToList();
+
+            var goalEventsByMatchAndTeam = await _context.MatchEvents
+                .AsNoTracking()
+                .Where(e => matchIds.Contains(e.MatchId) && e.EventTypeId == GoalEventTypeId)
+                .GroupBy(e => new { e.MatchId, e.TeamId })
+                .Select(g => new
+                {
+                    g.Key.MatchId,
+                    g.Key.TeamId,
+                    Goals = g.Count()
+                })
+                .ToListAsync();
+
+            var playerGoalsByMatch = await _context.MatchEvents
+                .AsNoTracking()
+                .Where(e => playerIdList.Contains(e.PlayerId) && matchIds.Contains(e.MatchId) && e.EventTypeId == GoalEventTypeId)
+                .GroupBy(e => new { e.PlayerId, e.MatchId })
+                .Select(g => new
+                {
+                    g.Key.PlayerId,
+                    g.Key.MatchId,
+                    Goals = g.Count()
+                })
+                .ToListAsync();
+
             var statsByPlayerId = playerIdList.ToDictionary(
                 id => id,
-                _ => new PlayerDynamicStats { Goals = 0, Assists = 0, Matches = 0 });
+                _ => new PlayerDynamicStats
+                {
+                    Goals = 0,
+                    Assists = 0,
+                    Matches = 0,
+                    GoalsPerGame = 0m,
+                    Wins = 0,
+                    Losses = 0,
+                    Draws = 0,
+                    GoalStreak = 0,
+                    NoGoalStreak = 0
+                });
+
+            var goalsByMatchAndTeam = goalEventsByMatchAndTeam.ToDictionary(
+                item => (item.MatchId, item.TeamId),
+                item => item.Goals);
+
+            var totalGoalsByMatch = goalEventsByMatchAndTeam
+                .GroupBy(item => item.MatchId)
+                .ToDictionary(group => group.Key, group => group.Sum(item => item.Goals));
+
+            var playerGoalsByMatchLookup = playerGoalsByMatch.ToDictionary(
+                item => (item.PlayerId, item.MatchId),
+                item => item.Goals);
 
             foreach (var stat in eventStats)
             {
@@ -261,7 +380,107 @@ namespace MyApi.Services
                 }
             }
 
+            foreach (var playerId in playerIdList)
+            {
+                if (!statsByPlayerId.TryGetValue(playerId, out var stats))
+                {
+                    continue;
+                }
+
+                if (stats.Matches > 0)
+                {
+                    stats.GoalsPerGame = Math.Round((decimal)stats.Goals / stats.Matches, 2, MidpointRounding.AwayFromZero);
+                }
+
+                var distinctPlayerMatches = playerMatchRows
+                    .Where(row => row.PlayerId == playerId)
+                    .GroupBy(row => row.MatchId)
+                    .Select(group => group
+                        .OrderByDescending(row => row.MatchDate)
+                        .ThenByDescending(row => row.TeamId)
+                        .First())
+                    .OrderByDescending(row => row.MatchDate)
+                    .ThenByDescending(row => row.MatchId)
+                    .ToList();
+
+                var goalStreak = 0;
+                var noGoalStreak = 0;
+                var goalStreakOpen = true;
+                var noGoalStreakOpen = true;
+
+                foreach (var matchRow in distinctPlayerMatches)
+                {
+                    goalsByMatchAndTeam.TryGetValue((matchRow.MatchId, matchRow.TeamId), out var teamGoals);
+                    totalGoalsByMatch.TryGetValue(matchRow.MatchId, out var totalMatchGoals);
+                    var opponentGoals = Math.Max(0, totalMatchGoals - teamGoals);
+
+                    if (teamGoals > opponentGoals)
+                    {
+                        stats.Wins++;
+                    }
+                    else if (teamGoals < opponentGoals)
+                    {
+                        stats.Losses++;
+                    }
+                    else
+                    {
+                        stats.Draws++;
+                    }
+
+                    var scoredGoalInMatch = playerGoalsByMatchLookup.TryGetValue((playerId, matchRow.MatchId), out var goalsInMatch)
+                        && goalsInMatch > 0;
+
+                    if (goalStreakOpen)
+                    {
+                        if (scoredGoalInMatch)
+                        {
+                            goalStreak++;
+                        }
+                        else
+                        {
+                            goalStreakOpen = false;
+                        }
+                    }
+
+                    if (noGoalStreakOpen)
+                    {
+                        if (!scoredGoalInMatch)
+                        {
+                            noGoalStreak++;
+                        }
+                        else
+                        {
+                            noGoalStreakOpen = false;
+                        }
+                    }
+                }
+
+                stats.GoalStreak = goalStreak;
+                stats.NoGoalStreak = noGoalStreak;
+            }
+
             return statsByPlayerId;
+        }
+
+        private static void ApplyZeroStats(Player player)
+        {
+            player.Goals = 0;
+            player.Assists = 0;
+            player.Matches = 0;
+            player.GoalsPerGame = 0m;
+            player.Wins = 0;
+            player.Losses = 0;
+            player.Draws = 0;
+            player.GoalStreak = 0;
+            player.NoGoalStreak = 0;
+        }
+
+        private sealed class PlayerMatchRow
+        {
+            public int PlayerId { get; set; }
+            public int MatchId { get; set; }
+            public int TeamId { get; set; }
+            public DateTime MatchDate { get; set; }
         }
 
         private sealed class PlayerDynamicStats
@@ -269,6 +488,12 @@ namespace MyApi.Services
             public int Goals { get; set; }
             public int Assists { get; set; }
             public int Matches { get; set; }
+            public decimal GoalsPerGame { get; set; }
+            public int Wins { get; set; }
+            public int Losses { get; set; }
+            public int Draws { get; set; }
+            public int GoalStreak { get; set; }
+            public int NoGoalStreak { get; set; }
         }
     }
 }
