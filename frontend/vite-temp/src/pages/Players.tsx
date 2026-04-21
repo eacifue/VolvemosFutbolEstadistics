@@ -1,43 +1,22 @@
 // Reworked players page with stronger search UX, responsive card grid, position-coded badges, and friendly empty states.
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { startTransition, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import PlayerCard, { getPlayerCardRating } from '../components/PlayerCard';
 import '../styles/Players.css';
 import type { Player } from '../types';
 import { getPlayers } from '../services/api';
 import { subscribeStatsRefresh } from '../services/refreshBus';
 
-const getPositionClass = (position?: string): string => {
-  const value = (position || '').toLowerCase();
-  if (value.includes('portero') || value.includes('goalkeeper')) return 'position-goalkeeper';
-  if (value.includes('defensa') || value.includes('defender')) return 'position-defender';
-  if (value.includes('medio') || value.includes('midfielder') || value.includes('volante')) return 'position-midfielder';
-  if (value.includes('delantero') || value.includes('forward') || value.includes('ataque')) return 'position-forward';
-  return 'position-default';
-};
-
 const getPlayerPhoto = (player: Player): string | undefined => {
-  const mediaCandidate = player as Player & {
-    photoUrl?: string;
-    avatarUrl?: string;
-    imageUrl?: string;
-    photo?: string;
-    image?: string;
-  };
-
   const possibleUrls = [
-    mediaCandidate.photoUrl,
-    mediaCandidate.avatarUrl,
-    mediaCandidate.imageUrl,
-    mediaCandidate.photo,
-    mediaCandidate.image,
+    player.photoUrl,
+    player.avatarUrl,
+    player.imageUrl,
+    player.photo,
+    player.image,
   ];
 
   return possibleUrls.find((url) => typeof url === 'string' && url.trim().length > 0);
-};
-
-const getPlayerCardRating = (player: Player): number => {
-  const impact = (player.goals * 4) + (player.assists * 3) + player.matches;
-  return Math.min(99, Math.max(50, Math.round(50 + impact * 0.8)));
 };
 
 const Players: React.FC = () => {
@@ -46,11 +25,14 @@ const Players: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+  const deferredSearchTerm = useDeferredValue(searchTerm);
 
   const fetchPlayers = async () => {
     try {
       const data = await getPlayers();
-      setPlayers(data as Player[]);
+      startTransition(() => {
+        setPlayers(data);
+      });
       setError(null);
     } catch (err: any) {
       setError(err.message ?? 'Error cargando jugadores');
@@ -87,13 +69,38 @@ const Players: React.FC = () => {
   }, []);
 
   const filteredPlayers = useMemo(() => {
-    const term = searchTerm.toLowerCase().trim();
+    const term = deferredSearchTerm.toLowerCase().trim();
     return players.filter((p) =>
       `${p.firstName} ${p.lastName}`.toLowerCase().includes(term) ||
       p.position?.name?.toLowerCase().includes(term) ||
       p.id.toString().includes(term)
     );
-  }, [players, searchTerm]);
+  }, [deferredSearchTerm, players]);
+
+  const rankedPlayers = useMemo(() => {
+    return [...filteredPlayers]
+      .sort((left, right) => {
+        const ratingDiff = getPlayerCardRating(right) - getPlayerCardRating(left);
+        if (ratingDiff !== 0) {
+          return ratingDiff;
+        }
+
+        const contributionDiff = (right.goals + right.assists) - (left.goals + left.assists);
+        if (contributionDiff !== 0) {
+          return contributionDiff;
+        }
+
+        return left.id - right.id;
+      })
+      .map((player, index) => ({
+        player,
+        rank: index + 1,
+      }));
+  }, [filteredPlayers]);
+
+  const handleImageError = (playerId: number) => {
+    setImageErrors((prev) => ({ ...prev, [playerId]: true }));
+  };
 
   if (loading) {
     return (
@@ -158,80 +165,19 @@ const Players: React.FC = () => {
             </div>
           </div>
 
-          {filteredPlayers.length > 0 ? (
+          {rankedPlayers.length > 0 ? (
             <div className="players-grid">
-              {filteredPlayers.map((player) => {
-                const initials = `${player.firstName.charAt(0)}${player.lastName.charAt(0)}`.toUpperCase();
-                const positionName = player.position?.name ?? 'Sin posicion';
+              {rankedPlayers.map(({ player, rank }) => {
                 const photoUrl = getPlayerPhoto(player);
-                const hasPhoto = Boolean(photoUrl) && !imageErrors[player.id];
-                const rating = getPlayerCardRating(player);
                 return (
-                  <article key={player.id} className="player-card-premium card fade-in">
-                    <div className="card-header">
-                      <span className="card-rating-badge" aria-label={`Rating ${rating}`}>
-                        {rating}
-                      </span>
-
-                      <div className="player-photo-shell">
-                        {hasPhoto ? (
-                          <img
-                            src={photoUrl}
-                            alt={`Foto de ${player.firstName} ${player.lastName}`}
-                            className="player-photo"
-                            loading="lazy"
-                            onError={() => {
-                              setImageErrors((prev) => ({ ...prev, [player.id]: true }));
-                            }}
-                          />
-                        ) : (
-                          <div className="player-photo-fallback player-avatar-large" aria-hidden="true">
-                            {initials}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="card-body">
-                      <h3 className="player-name ellipsis">{player.firstName} {player.lastName}</h3>
-                      <div className={`position-badge ${getPositionClass(positionName)}`}>{positionName}</div>
-
-                      <div className="player-performance">
-                        <div className="performance-item goals">
-                          <div className="perf-header">
-                            <span className="perf-icon">⚽</span>
-                            <span className="perf-label">Goles</span>
-                          </div>
-                          <span className="perf-value">{player.goals}</span>
-                        </div>
-                        <div className="performance-item assists">
-                          <div className="perf-header">
-                            <span className="perf-icon">🎯</span>
-                            <span className="perf-label">Asist.</span>
-                          </div>
-                          <span className="perf-value">{player.assists}</span>
-                        </div>
-                        <div className="performance-item matches">
-                          <div className="perf-header">
-                            <span className="perf-icon">🏆</span>
-                            <span className="perf-label">Partidos</span>
-                          </div>
-                          <span className="perf-value">{player.matches}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="card-footer">
-                      <div className="player-meta">
-                        <span>Ficha #{player.id}</span>
-                        <span>Rating: {rating}</span>
-                      </div>
-                      <div className="progress-bar">
-                        <div className="progress-fill" style={{ width: `${Math.min((player.goals + player.assists) * 8, 100)}%` }}></div>
-                      </div>
-                      <span className="performance-text">Aporte ofensivo</span>
-                    </div>
-                  </article>
+                  <PlayerCard
+                    key={player.id}
+                    player={player}
+                    rank={rank}
+                    photoUrl={photoUrl}
+                    imageFailed={Boolean(imageErrors[player.id])}
+                    onImageError={handleImageError}
+                  />
                 );
               })}
             </div>
