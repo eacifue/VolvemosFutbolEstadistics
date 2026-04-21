@@ -20,6 +20,24 @@ public class Player
     public int Assists { get; set; }
     public int Matches { get; set; }
 
+    [NotMapped]
+    public decimal GoalsPerGame { get; set; }
+
+    [NotMapped]
+    public int Wins { get; set; }
+
+    [NotMapped]
+    public int Losses { get; set; }
+
+    [NotMapped]
+    public int Draws { get; set; }
+
+    [NotMapped]
+    public int GoalStreak { get; set; }
+
+    [NotMapped]
+    public int NoGoalStreak { get; set; }
+
     // Relationships
     [JsonIgnore]
     public ICollection<MatchEvent> MatchEvents { get; set; } = new List<MatchEvent>();

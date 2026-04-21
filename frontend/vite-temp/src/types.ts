@@ -64,9 +64,20 @@ export interface Player {
     lastName: string;
     positionId?: number;
     position?: Position;
+  photoUrl?: string;
+  avatarUrl?: string;
+  imageUrl?: string;
+  photo?: string;
+  image?: string;
     goals: number;
     assists: number;
     matches: number;
+    goalsPerGame: number;
+    wins: number;
+    losses: number;
+    draws: number;
+    goalStreak: number;
+    noGoalStreak: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -76,6 +87,12 @@ export interface PlayerStatsDto {
     goals: number;
     assists: number;
     matches: number;
+    goalsPerGame: number;
+    wins: number;
+    losses: number;
+    draws: number;
+    goalStreak: number;
+    noGoalStreak: number;
 }
 
 export interface Team {

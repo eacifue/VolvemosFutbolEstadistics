@@ -22,6 +22,12 @@ public static class PlayerMapper
         Goals = player.Goals,
         Assists = player.Assists,
         Matches = player.Matches,
+        GoalsPerGame = player.GoalsPerGame,
+        Wins = player.Wins,
+        Losses = player.Losses,
+        Draws = player.Draws,
+        GoalStreak = player.GoalStreak,
+        NoGoalStreak = player.NoGoalStreak,
         CreatedAt = player.CreatedAt,
         UpdatedAt = player.UpdatedAt
     };

@@ -1,4 +1,6 @@
 import axios from 'axios';
+import type { AxiosResponse } from 'axios';
+import type { Player } from '../types';
 
 // ✅ Base URL segura (NO rompe en producción ni en local)
 const baseURL = import.meta.env.VITE_API_URL
@@ -35,7 +37,7 @@ apiClient.interceptors.response.use(
 );
 
 // ✅ Helper para evitar repetir res.data
-const request = async (promise: Promise<any>) => {
+const request = async <T>(promise: Promise<AxiosResponse<T>>): Promise<T> => {
   const res = await promise;
   return res.data;
 };
@@ -46,7 +48,7 @@ export const getDashboard = () =>
 
 // ==================== PLAYERS ====================
 export const getPlayers = () =>
-  request(apiClient.get('/players', { params: { _ts: Date.now() } }));
+  request<Player[]>(apiClient.get('/players', { params: { _ts: Date.now() } }));
 
 export const getPlayer = (id: number) =>
   request(apiClient.get(`/players/${id}`));
