@@ -4,6 +4,7 @@ import { Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import AdminRoute from './components/AdminRoute';
 import Home from './pages/Home';
+import MatchDetailScreen from './pages/MatchDetailScreen';
 import Players from './pages/Players';
 import Admin from './pages/Admin';
 import ManagePlayers from './pages/ManagePlayers';
@@ -16,6 +17,7 @@ const App: React.FC = () => {
             <main className="main-content-offset">
                 <Routes>
                     <Route path="/" element={<Home />} />
+                    <Route path="/partidos" element={<MatchDetailScreen />} />
                     <Route path="/jugadores" element={<Players />} />
                     <Route
                         path="/admin"
