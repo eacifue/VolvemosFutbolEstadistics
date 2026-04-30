@@ -62,6 +62,9 @@ export interface Player {
     id: number;
     firstName: string;
     lastName: string;
+  teamId?: number;
+  teamName?: string;
+  team?: Team;
     positionId?: number;
     position?: Position;
   photoUrl?: string;
