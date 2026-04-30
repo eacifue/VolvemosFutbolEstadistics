@@ -38,6 +38,9 @@ const Header: React.FC = () => {
                             <Link to="/" className={`nav-link ${isActive('/')}`} onClick={() => setMobileMenuOpen(false)}>
                                 Inicio
                             </Link>
+                            <Link to="/partidos" className={`nav-link ${isActive('/partidos')}`} onClick={() => setMobileMenuOpen(false)}>
+                                Partidos
+                            </Link>
                             <Link to="/jugadores" className={`nav-link ${isActive('/jugadores')}`} onClick={() => setMobileMenuOpen(false)}>
                                 Jugadores
                             </Link>
@@ -51,7 +54,7 @@ const Header: React.FC = () => {
                         <div className="header-auth">
                             {user ? (
                                 <div className="user-badge" title={user.username}>
-                                    <span className="avatar-circle">{user.username.charAt(0).toUpperCase()}</span>
+                                    <span className="avatar-circle">{user.username?.charAt(0).toUpperCase()}</span>
                                     <span className="user-name">{user.username}</span>
                                     <button className="auth-btn logout-btn" onClick={logout}>Salir</button>
                                 </div>

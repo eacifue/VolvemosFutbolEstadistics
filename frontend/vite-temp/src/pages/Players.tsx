@@ -1,11 +1,12 @@
-// Reworked players page with stronger search UX, responsive card grid, position-coded badges, and friendly empty states.
+// Players page tuned for professional single-column cards and clearer stat readability.
 import React, { startTransition, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PlayerCard, { getPlayerCardRating } from '../components/PlayerCard';
 import '../styles/Players.css';
-import type { Player } from '../types';
-import { getPlayers } from '../services/api';
+import type { Match, Player } from '../types';
+import { getMatches, getPlayers } from '../services/api';
 import { subscribeStatsRefresh } from '../services/refreshBus';
+import { getGoalkeeperStats, isGoalkeeperPlayer } from '../utils/goalkeeperStats';
 
 const getPlayerPhoto = (player: Player): string | undefined => {
   const possibleUrls = [
@@ -21,6 +22,7 @@ const getPlayerPhoto = (player: Player): string | undefined => {
 
 const Players: React.FC = () => {
   const [players, setPlayers] = useState<Player[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,9 +31,10 @@ const Players: React.FC = () => {
 
   const fetchPlayers = async () => {
     try {
-      const data = await getPlayers();
+      const [playersData, matchesData] = await Promise.all([getPlayers(), getMatches()]);
       startTransition(() => {
-        setPlayers(data);
+        setPlayers(playersData);
+        setMatches(matchesData);
       });
       setError(null);
     } catch (err: any) {
@@ -98,6 +101,20 @@ const Players: React.FC = () => {
       }));
   }, [filteredPlayers]);
 
+  const goalkeeperStatsByPlayerId = useMemo(() => {
+    const statsMap = new Map<number, ReturnType<typeof getGoalkeeperStats>>();
+
+    players.forEach((player) => {
+      if (!isGoalkeeperPlayer(player)) {
+        return;
+      }
+
+      statsMap.set(player.id, getGoalkeeperStats(player, matches));
+    });
+
+    return statsMap;
+  }, [players, matches]);
+
   const handleImageError = (playerId: number) => {
     setImageErrors((prev) => ({ ...prev, [playerId]: true }));
   };
@@ -109,7 +126,7 @@ const Players: React.FC = () => {
         <section className="all-players">
           <div className="container">
             <div className="skeleton" style={{ height: '56px', borderRadius: 'var(--radius-lg)', marginBottom: '1.5rem' }} />
-            <div className="players-grid">
+            <div className="players-list" aria-label="Lista de jugadores">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                 <div key={i} className="skeleton" style={{ borderRadius: 'var(--radius-lg)', minHeight: '290px' }} />
               ))}
@@ -166,7 +183,7 @@ const Players: React.FC = () => {
           </div>
 
           {rankedPlayers.length > 0 ? (
-            <div className="players-grid">
+            <div className="players-list" aria-label="Lista de jugadores">
               {rankedPlayers.map(({ player, rank }) => {
                 const photoUrl = getPlayerPhoto(player);
                 return (
@@ -177,6 +194,7 @@ const Players: React.FC = () => {
                     photoUrl={photoUrl}
                     imageFailed={Boolean(imageErrors[player.id])}
                     onImageError={handleImageError}
+                    goalkeeperStats={goalkeeperStatsByPlayerId.get(player.id)}
                   />
                 );
               })}
