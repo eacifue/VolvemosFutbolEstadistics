@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Match, MatchEvent, MatchPlayer } from '../types';
 import { getMatch, getMatchEvents, getMatchPlayers, getMatches } from '../services/api';
 import '../styles/MatchDetailScreen.css';
@@ -66,6 +66,35 @@ const MatchDetailScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateCarouselControls = () => {
+    const carousel = carouselRef.current;
+    if (!carousel) {
+      setCanScrollLeft(false);
+      setCanScrollRight(false);
+      return;
+    }
+
+    const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+    const hasOverflow = maxScrollLeft > 1;
+
+    setCanScrollLeft(hasOverflow && carousel.scrollLeft > 2);
+    setCanScrollRight(hasOverflow && carousel.scrollLeft < maxScrollLeft - 2);
+  };
+
+  const handleScrollCarousel = (direction: 'left' | 'right') => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+
+    const step = Math.max(260, Math.round(carousel.clientWidth * 0.68));
+    carousel.scrollBy({
+      left: direction === 'left' ? -step : step,
+      behavior: 'smooth',
+    });
+  };
 
   const loadMatchDetail = async (matchId: number) => {
     setIsLoadingDetail(true);
@@ -109,6 +138,24 @@ const MatchDetailScreen: React.FC = () => {
   useEffect(() => {
     void loadData();
   }, []);
+
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    updateCarouselControls();
+
+    if (!carousel) return;
+
+    const onScroll = () => updateCarouselControls();
+    const onResize = () => updateCarouselControls();
+
+    carousel.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      carousel.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [matches.length]);
 
   const handleSelectMatch = async (matchId: number) => {
     if (matchId === selectedMatchId) return;
@@ -271,29 +318,61 @@ const MatchDetailScreen: React.FC = () => {
             <span>{matches.length} totales</span>
           </header>
 
-          <div className="matches-scroll-list" role="listbox" aria-label="Partidos disponibles">
-            {matches.map((match) => {
-              const isSelected = selectedMatchId === match.id;
-              const homeName = match.homeTeam?.name ?? 'Equipo Local';
-              const awayName = match.awayTeam?.name ?? 'Equipo Visitante';
+          <div className="matches-carousel-shell">
+            <button
+              type="button"
+              className={`carousel-arrow left ${canScrollLeft ? 'is-visible' : ''}`}
+              onClick={() => handleScrollCarousel('left')}
+              aria-label="Desplazar partidos a la izquierda"
+              disabled={!canScrollLeft}
+            >
+              <span aria-hidden="true">←</span>
+            </button>
 
-              const homeGoals = (match.events ?? []).filter((event) => event.teamId === 1 && GOAL_EVENT_IDS.has(event.eventTypeId)).length;
-              const awayGoals = (match.events ?? []).filter((event) => event.teamId === 2 && GOAL_EVENT_IDS.has(event.eventTypeId)).length;
+            <div
+              ref={carouselRef}
+              className="matches-scroll-list"
+              role="listbox"
+              aria-label="Partidos disponibles"
+            >
+              {matches.map((match) => {
+                const isSelected = selectedMatchId === match.id;
+                const homeName = match.homeTeam?.name ?? 'Equipo Local';
+                const awayName = match.awayTeam?.name ?? 'Equipo Visitante';
+                const isFinished = new Date(match.matchDate).getTime() <= Date.now();
 
-              return (
-                <button
-                  key={match.id}
-                  type="button"
-                  className={`match-list-item ${isSelected ? 'selected' : ''}`}
-                  onClick={() => void handleSelectMatch(match.id)}
-                  aria-selected={isSelected}
-                >
-                  <div className="match-teams ellipsis">{homeName} vs {awayName}</div>
-                  <div className="match-score-mini">{homeGoals} - {awayGoals}</div>
-                  <div className="match-date-mini">{formatDate(match.matchDate)}</div>
-                </button>
-              );
-            })}
+                const homeGoals = (match.events ?? []).filter((event) => event.teamId === 1 && GOAL_EVENT_IDS.has(event.eventTypeId)).length;
+                const awayGoals = (match.events ?? []).filter((event) => event.teamId === 2 && GOAL_EVENT_IDS.has(event.eventTypeId)).length;
+
+                return (
+                  <button
+                    key={match.id}
+                    type="button"
+                    className={`match-list-item ${isSelected ? 'selected' : ''}`}
+                    onClick={() => void handleSelectMatch(match.id)}
+                    aria-selected={isSelected}
+                  >
+                    <div className="match-card-top">
+                      <span className="match-status-chip">{isFinished ? 'Finalizado' : 'Programado'}</span>
+                    </div>
+                    <div className="match-teams">{homeName} <span className="versus-inline">vs</span> {awayName}</div>
+                    <div className="match-score-mini">{homeGoals} - {awayGoals}</div>
+                    <div className="match-date-mini">{formatDate(match.matchDate)}</div>
+                    <div className="match-overlay-info">Ver detalle del partido</div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              className={`carousel-arrow right ${canScrollRight ? 'is-visible' : ''}`}
+              onClick={() => handleScrollCarousel('right')}
+              aria-label="Desplazar partidos a la derecha"
+              disabled={!canScrollRight}
+            >
+              <span aria-hidden="true">→</span>
+            </button>
           </div>
         </section>
       </div>
