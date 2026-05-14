@@ -11,8 +11,9 @@ namespace MyApi.Services
 {
     public class PlayerService : IPlayerService
     {
-        private const int GoalEventTypeId = 1;
-        private const int AssistEventTypeId = 2;
+        private const int GoalEventTypeId = (int)EventTypeKind.Goal;
+        private const int AssistEventTypeId = (int)EventTypeKind.Assist;
+        private const int OwnGoalEventTypeId = (int)EventTypeKind.OwnGoal;
 
         private readonly ApplicationDbContext _context;
 
@@ -38,6 +39,7 @@ namespace MyApi.Services
                     player.Goals = stats.Goals;
                     player.Assists = stats.Assists;
                     player.Matches = stats.Matches;
+                    player.OwnGoals = stats.OwnGoals;
                     player.GoalsPerGame = stats.GoalsPerGame;
                     player.Wins = stats.Wins;
                     player.Losses = stats.Losses;
@@ -72,6 +74,7 @@ namespace MyApi.Services
                 player.Goals = stats.Goals;
                 player.Assists = stats.Assists;
                 player.Matches = stats.Matches;
+                player.OwnGoals = stats.OwnGoals;
                 player.GoalsPerGame = stats.GoalsPerGame;
                 player.Wins = stats.Wins;
                 player.Losses = stats.Losses;
@@ -162,6 +165,7 @@ namespace MyApi.Services
                     player.Goals = stats.Goals;
                     player.Assists = stats.Assists;
                     player.Matches = stats.Matches;
+                    player.OwnGoals = stats.OwnGoals;
                     player.GoalsPerGame = stats.GoalsPerGame;
                     player.Wins = stats.Wins;
                     player.Losses = stats.Losses;
@@ -225,6 +229,7 @@ namespace MyApi.Services
                 Goals = stats?.Goals ?? 0,
                 Assists = stats?.Assists ?? 0,
                 Matches = stats?.Matches ?? 0,
+                OwnGoals = stats?.OwnGoals ?? 0,
                 GoalsPerGame = stats?.GoalsPerGame ?? 0m,
                 Wins = stats?.Wins ?? 0,
                 Losses = stats?.Losses ?? 0,
@@ -253,6 +258,7 @@ namespace MyApi.Services
                     Goals = stats?.Goals ?? 0,
                     Assists = stats?.Assists ?? 0,
                     Matches = stats?.Matches ?? 0,
+                    OwnGoals = stats?.OwnGoals ?? 0,
                     GoalsPerGame = stats?.GoalsPerGame ?? 0m,
                     Wins = stats?.Wins ?? 0,
                     Losses = stats?.Losses ?? 0,
@@ -274,13 +280,17 @@ namespace MyApi.Services
 
             var eventStats = await _context.MatchEvents
                 .AsNoTracking()
-                .Where(e => playerIdList.Contains(e.PlayerId) && (e.EventTypeId == GoalEventTypeId || e.EventTypeId == AssistEventTypeId))
+                .Where(e => playerIdList.Contains(e.PlayerId)
+                    && (e.EventTypeId == GoalEventTypeId
+                        || e.EventTypeId == AssistEventTypeId
+                        || e.EventTypeId == OwnGoalEventTypeId))
                 .GroupBy(e => e.PlayerId)
                 .Select(g => new
                 {
                     PlayerId = g.Key,
                     Goals = g.Count(e => e.EventTypeId == GoalEventTypeId),
-                    Assists = g.Count(e => e.EventTypeId == AssistEventTypeId)
+                    Assists = g.Count(e => e.EventTypeId == AssistEventTypeId),
+                    OwnGoals = g.Count(e => e.EventTypeId == OwnGoalEventTypeId)
                 })
                 .ToListAsync();
 
@@ -312,17 +322,7 @@ namespace MyApi.Services
                 .Distinct()
                 .ToList();
 
-            var goalEventsByMatchAndTeam = await _context.MatchEvents
-                .AsNoTracking()
-                .Where(e => matchIds.Contains(e.MatchId) && e.EventTypeId == GoalEventTypeId)
-                .GroupBy(e => new { e.MatchId, e.TeamId })
-                .Select(g => new
-                {
-                    g.Key.MatchId,
-                    g.Key.TeamId,
-                    Goals = g.Count()
-                })
-                .ToListAsync();
+            var goalsByMatchAndTeam = await BuildGoalsByMatchAndTeamAsync(matchIds);
 
             var playerGoalsByMatch = await _context.MatchEvents
                 .AsNoTracking()
@@ -343,6 +343,7 @@ namespace MyApi.Services
                     Goals = 0,
                     Assists = 0,
                     Matches = 0,
+                    OwnGoals = 0,
                     GoalsPerGame = 0m,
                     Wins = 0,
                     Losses = 0,
@@ -351,13 +352,9 @@ namespace MyApi.Services
                     NoGoalStreak = 0
                 });
 
-            var goalsByMatchAndTeam = goalEventsByMatchAndTeam.ToDictionary(
-                item => (item.MatchId, item.TeamId),
-                item => item.Goals);
-
-            var totalGoalsByMatch = goalEventsByMatchAndTeam
-                .GroupBy(item => item.MatchId)
-                .ToDictionary(group => group.Key, group => group.Sum(item => item.Goals));
+            var totalGoalsByMatch = goalsByMatchAndTeam
+                .GroupBy(item => item.Key.MatchId)
+                .ToDictionary(group => group.Key, group => group.Sum(item => item.Value));
 
             var playerGoalsByMatchLookup = playerGoalsByMatch.ToDictionary(
                 item => (item.PlayerId, item.MatchId),
@@ -369,6 +366,7 @@ namespace MyApi.Services
                 {
                     value.Goals = stat.Goals;
                     value.Assists = stat.Assists;
+                    value.OwnGoals = stat.OwnGoals;
                 }
             }
 
@@ -462,11 +460,85 @@ namespace MyApi.Services
             return statsByPlayerId;
         }
 
+        private async Task<Dictionary<(int MatchId, int TeamId), int>> BuildGoalsByMatchAndTeamAsync(IEnumerable<int> matchIds)
+        {
+            var distinctMatchIds = matchIds.Distinct().ToList();
+            if (!distinctMatchIds.Any())
+            {
+                return new Dictionary<(int MatchId, int TeamId), int>();
+            }
+
+            var teamsByMatch = await _context.MatchPlayers
+                .AsNoTracking()
+                .Where(mp => distinctMatchIds.Contains(mp.MatchId))
+                .GroupBy(mp => mp.MatchId)
+                .Select(g => new
+                {
+                    MatchId = g.Key,
+                    TeamIds = g.Select(mp => mp.TeamId).Distinct().ToList()
+                })
+                .ToListAsync();
+
+            var teamIdLookup = teamsByMatch.ToDictionary(x => x.MatchId, x => x.TeamIds);
+
+            var events = await _context.MatchEvents
+                .AsNoTracking()
+                .Where(e => distinctMatchIds.Contains(e.MatchId)
+                    && (e.EventTypeId == GoalEventTypeId || e.EventTypeId == OwnGoalEventTypeId))
+                .Select(e => new { e.MatchId, e.TeamId, e.EventTypeId })
+                .ToListAsync();
+
+            var goalsByMatchAndTeam = new Dictionary<(int MatchId, int TeamId), int>();
+
+            foreach (var teamInfo in teamsByMatch)
+            {
+                foreach (var teamId in teamInfo.TeamIds)
+                {
+                    goalsByMatchAndTeam[(teamInfo.MatchId, teamId)] = 0;
+                }
+            }
+
+            foreach (var ev in events)
+            {
+                var creditedTeamId = ev.TeamId;
+
+                if (ev.EventTypeId == OwnGoalEventTypeId)
+                {
+                    creditedTeamId = ResolveOpponentTeamId(teamIdLookup, ev.MatchId, ev.TeamId);
+                }
+
+                var key = (ev.MatchId, creditedTeamId);
+                goalsByMatchAndTeam[key] = goalsByMatchAndTeam.TryGetValue(key, out var current)
+                    ? current + 1
+                    : 1;
+            }
+
+            return goalsByMatchAndTeam;
+        }
+
+        private static int ResolveOpponentTeamId(
+            IReadOnlyDictionary<int, List<int>> teamsByMatch,
+            int matchId,
+            int teamId)
+        {
+            if (teamsByMatch.TryGetValue(matchId, out var teams))
+            {
+                var opponent = teams.FirstOrDefault(t => t != teamId);
+                if (opponent != 0)
+                {
+                    return opponent;
+                }
+            }
+
+            return teamId == 1 ? 2 : 1;
+        }
+
         private static void ApplyZeroStats(Player player)
         {
             player.Goals = 0;
             player.Assists = 0;
             player.Matches = 0;
+            player.OwnGoals = 0;
             player.GoalsPerGame = 0m;
             player.Wins = 0;
             player.Losses = 0;
@@ -488,6 +560,7 @@ namespace MyApi.Services
             public int Goals { get; set; }
             public int Assists { get; set; }
             public int Matches { get; set; }
+            public int OwnGoals { get; set; }
             public decimal GoalsPerGame { get; set; }
             public int Wins { get; set; }
             public int Losses { get; set; }

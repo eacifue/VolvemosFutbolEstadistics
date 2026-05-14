@@ -369,6 +369,11 @@
   color: #111827;
 }
 
+.event-chip-own-goal {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .event-chip-empty {
   background: #f3f4f6;
   color: #6b7280;
@@ -386,7 +391,7 @@
 .teams-highlight {
   display: grid;
   gap: var(--space-6);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .team-highlight-section h3 {
@@ -471,6 +476,13 @@
   font-weight: 700;
 }
 
+.player-subteam {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
 .player-progress {
   background: #e5e7eb;
   border-radius: var(--radius-full);
@@ -501,6 +513,31 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
   text-transform: uppercase;
+}
+
+.team-highlight-section-own-goals h3 {
+  color: #b91c1c;
+}
+
+.player-list-item-own-goals {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.player-progress-own-goals {
+  background: #fee2e2;
+}
+
+.player-progress-fill-own-goals {
+  background: linear-gradient(90deg, #dc2626, #f87171);
+}
+
+.player-stat-own-goals .stat-value {
+  color: #b91c1c;
+}
+
+.player-stat-own-goals .stat-label {
+  color: #991b1b;
 }
 
 .stats-comparison {

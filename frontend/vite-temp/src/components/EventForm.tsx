@@ -1,17 +1,20 @@
 // Rebuilt event form into a compact inline layout with explicit labels and football-specific event options.
 import React, { useState } from 'react';
 import type { Player } from '../types';
+import { EVENT_TYPE_IDS } from '../constants/eventTypes';
+
+type SupportedEventTypeId = 1 | 2 | 3;
 
 interface EventFormProps {
   whitePlayers: Player[];
   blackPlayers: Player[];
-  onSubmit: (event: { matchId: number; playerId: number; eventTypeId: 1 | 2; teamId: 1 | 2 }) => void;
+  onSubmit: (event: { matchId: number; playerId: number; eventTypeId: SupportedEventTypeId; teamId: 1 | 2 }) => void;
 }
 
 const EventForm: React.FC<EventFormProps> = ({ whitePlayers, blackPlayers, onSubmit }) => {
   const [team, setTeam] = useState<1 | 2>(1);
   const [playerId, setPlayerId] = useState<number>(0);
-  const [eventType, setEventType] = useState<1 | 2>(1);
+  const [eventType, setEventType] = useState<SupportedEventTypeId>(EVENT_TYPE_IDS.goal);
 
   const players = team === 1 ? whitePlayers : blackPlayers;
 
@@ -60,9 +63,10 @@ const EventForm: React.FC<EventFormProps> = ({ whitePlayers, blackPlayers, onSub
 
         <div>
           <label htmlFor="event-type">Tipo de evento</label>
-          <select id="event-type" value={eventType} onChange={(e) => setEventType(Number(e.target.value) as 1 | 2)}>
-            <option value={1}>⚽ Gol</option>
-            <option value={2}>🎯 Asistencia</option>
+          <select id="event-type" value={eventType} onChange={(e) => setEventType(Number(e.target.value) as SupportedEventTypeId)}>
+            <option value={EVENT_TYPE_IDS.goal}>⚽ Gol</option>
+            <option value={EVENT_TYPE_IDS.assist}>🎯 Asistencia</option>
+            <option value={EVENT_TYPE_IDS.ownGoal}>🥅 Autogol</option>
           </select>
         </div>
 

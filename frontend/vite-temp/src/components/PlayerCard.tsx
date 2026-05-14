@@ -78,6 +78,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   const draws = player.draws ?? 0;
   const goalStreak = player.goalStreak ?? 0;
   const noGoalStreak = player.noGoalStreak ?? 0;
+  const ownGoals = player.ownGoals ?? 0;
   const isGoalkeeper = isGoalkeeperPlayer(player);
 
   return (
@@ -118,6 +119,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
       <div className="player-stats-row" role="list" aria-label="Estadisticas del jugador">
         <StatItemWidget label="Goles" value={player.goals} icon="G" />
+        <StatItemWidget label="Autogoles" value={ownGoals} icon="OG" className="stat-item-widget-own-goal" />
         <StatItemWidget label="Asistencias" value={player.assists} icon="A" />
         <StatItemWidget label="Partidos" value={player.matches} icon="PJ" />
         <StatItemWidget label="Goles/Partido" value={goalsPerGame.toFixed(2)} icon="GP" />
