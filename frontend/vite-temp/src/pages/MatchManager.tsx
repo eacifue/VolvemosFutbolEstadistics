@@ -7,6 +7,7 @@ import EventForm from '../components/EventForm';
 import EventList from '../components/EventList';
 import Notification from '../components/Notification';
 import type { Match, Player } from '../types';
+import { EVENT_TYPE_IDS } from '../constants/eventTypes';
 import {
   getMatches,
   getMatch,
@@ -184,13 +185,19 @@ const MatchManager: React.FC = () => {
     }
   };
 
-  const handleAddEvent = async (event: { matchId: number; playerId: number; eventTypeId: 1 | 2; teamId: 1 | 2 }) => {
+  const handleAddEvent = async (event: { matchId: number; playerId: number; eventTypeId: 1 | 2 | 3; teamId: 1 | 2 }) => {
     if (!selectedMatchId) return;
     try {
       await createMatchEvent({ ...event, matchId: selectedMatchId });
       loadSelectedMatch(selectedMatchId);
       emitStatsRefresh();
-      showNotification('success', `${event.eventTypeId === 1 ? 'Gol' : 'Asistencia'} registrado exitosamente`);
+      const eventLabel =
+        event.eventTypeId === EVENT_TYPE_IDS.goal
+          ? 'Gol'
+          : event.eventTypeId === EVENT_TYPE_IDS.assist
+            ? 'Asistencia'
+            : 'Autogol';
+      showNotification('success', `${eventLabel} registrado exitosamente`);
     } catch (error: any) {
       console.error('Error adding event:', error);
       const errorMessage = error.response?.data || 'Error al registrar el evento';

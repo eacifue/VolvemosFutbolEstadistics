@@ -168,6 +168,15 @@
   line-height: 1.35;
 }
 
+.events-list li.event-own-goal {
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.event-icon-own-goal {
+  color: #dc2626;
+}
+
 .muted {
   color: #64748b;
   font-size: 0.85rem;

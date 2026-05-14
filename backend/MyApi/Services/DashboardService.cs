@@ -13,6 +13,7 @@ namespace MyApi.Services
     {
         private const int GoalEventTypeId = 1;
         private const int AssistEventTypeId = 2;
+        private const int OwnGoalEventTypeId = 3;
         private const int WhiteTeamId = 1;
         private const int BlackTeamId = 2;
 
@@ -46,8 +47,9 @@ namespace MyApi.Services
 
             foreach (var match in matches)
             {
-                var homeGoals = CountGoalsForTeam(match.Events, match.HomeTeamId);
-                var awayGoals = CountGoalsForTeam(match.Events, match.AwayTeamId);
+                var score = CountGoalsForMatch(match.Events, match.HomeTeamId, match.AwayTeamId);
+                var homeGoals = score.HomeGoals;
+                var awayGoals = score.AwayGoals;
 
                 if (match.HomeTeamId == WhiteTeamId)
                 {
@@ -138,11 +140,11 @@ namespace MyApi.Services
                             TeamId = e.TeamId
                         })
                         .ToList(),
-                    HomeGoals = CountGoalsForTeam(m.Events, m.HomeTeamId),
-                    AwayGoals = CountGoalsForTeam(m.Events, m.AwayTeamId),
-                    Winner = CountGoalsForTeam(m.Events, m.HomeTeamId) > CountGoalsForTeam(m.Events, m.AwayTeamId)
+                    HomeGoals = CountGoalsForTeam(m.Events, m.HomeTeamId, m.AwayTeamId),
+                    AwayGoals = CountGoalsForTeam(m.Events, m.AwayTeamId, m.HomeTeamId),
+                    Winner = CountGoalsForTeam(m.Events, m.HomeTeamId, m.AwayTeamId) > CountGoalsForTeam(m.Events, m.AwayTeamId, m.HomeTeamId)
                         ? "Home"
-                        : CountGoalsForTeam(m.Events, m.AwayTeamId) > CountGoalsForTeam(m.Events, m.HomeTeamId)
+                        : CountGoalsForTeam(m.Events, m.AwayTeamId, m.HomeTeamId) > CountGoalsForTeam(m.Events, m.HomeTeamId, m.AwayTeamId)
                             ? "Away"
                             : "Draw"
                 })
@@ -163,8 +165,10 @@ namespace MyApi.Services
                         PlayerId = p.Id,
                         FirstName = p.FirstName,
                         LastName = p.LastName,
+                        TeamName = string.Empty,
                         Goals = x.Goals,
-                        Assists = 0
+                        Assists = 0,
+                        OwnGoals = 0
                     })
                 .ToListAsync();
 
@@ -183,10 +187,56 @@ namespace MyApi.Services
                         PlayerId = p.Id,
                         FirstName = p.FirstName,
                         LastName = p.LastName,
+                        TeamName = string.Empty,
                         Goals = 0,
-                        Assists = x.Assists
+                        Assists = x.Assists,
+                        OwnGoals = 0
                     })
                 .ToListAsync();
+
+            var teamNamesById = await _context.Teams
+                .AsNoTracking()
+                .ToDictionaryAsync(t => t.Id, t => t.Name);
+
+            var topOwnGoalRows = await _context.MatchEvents
+                .AsNoTracking()
+                .Where(e => e.EventTypeId == OwnGoalEventTypeId)
+                .GroupBy(e => e.PlayerId)
+                .Select(g => new
+                {
+                    PlayerId = g.Key,
+                    OwnGoals = g.Count(),
+                    TeamId = g.OrderByDescending(e => e.CreatedAt).Select(e => e.TeamId).FirstOrDefault()
+                })
+                .OrderByDescending(x => x.OwnGoals)
+                .Take(3)
+                .ToListAsync();
+
+            var topOwnGoalPlayerIds = topOwnGoalRows.Select(x => x.PlayerId).Distinct().ToList();
+            var playersById = await _context.Players
+                .AsNoTracking()
+                .Where(p => topOwnGoalPlayerIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id);
+
+            var topOwnGoals = topOwnGoalRows
+                .Where(x => playersById.ContainsKey(x.PlayerId))
+                .Select(x =>
+                {
+                    var player = playersById[x.PlayerId];
+                    teamNamesById.TryGetValue(x.TeamId, out var teamName);
+
+                    return new TopPlayerDto
+                    {
+                        PlayerId = player.Id,
+                        FirstName = player.FirstName,
+                        LastName = player.LastName,
+                        TeamName = teamName ?? "Equipo",
+                        Goals = 0,
+                        Assists = 0,
+                        OwnGoals = x.OwnGoals
+                    };
+                })
+                .ToList();
 
             var teamMeta = await _context.Teams
                 .AsNoTracking()
@@ -233,18 +283,36 @@ namespace MyApi.Services
                 RecentMatches = recentMatches,
                 TopScorers = topScorers,
                 TopAssists = topAssists,
+                TopOwnGoals = topOwnGoals,
                 TeamComparison = teamComparison
             };
         }
 
-        private static int CountGoalsForTeam(IEnumerable<MatchEvent> events, int? teamId)
+        private static int CountGoalsForTeam(IEnumerable<MatchEvent> events, int? teamId, int? opponentTeamId)
         {
             if (!teamId.HasValue)
             {
                 return 0;
             }
 
-            return events.Count(e => e.EventTypeId == GoalEventTypeId && e.TeamId == teamId.Value);
+            var goals = events.Count(e => e.EventTypeId == GoalEventTypeId && e.TeamId == teamId.Value);
+
+            if (opponentTeamId.HasValue)
+            {
+                goals += events.Count(e => e.EventTypeId == OwnGoalEventTypeId && e.TeamId == opponentTeamId.Value);
+            }
+
+            return goals;
+        }
+
+        private static (int HomeGoals, int AwayGoals) CountGoalsForMatch(
+            IEnumerable<MatchEvent> events,
+            int? homeTeamId,
+            int? awayTeamId)
+        {
+            var homeGoals = CountGoalsForTeam(events, homeTeamId, awayTeamId);
+            var awayGoals = CountGoalsForTeam(events, awayTeamId, homeTeamId);
+            return (homeGoals, awayGoals);
         }
     }
 }

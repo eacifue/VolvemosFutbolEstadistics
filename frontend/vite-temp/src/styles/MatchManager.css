@@ -338,6 +338,15 @@
   justify-content: flex-start;
 }
 
+.event-item-own-goal {
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.event-icon-own-goal {
+  color: #dc2626;
+}
+
 .empty-inline {
   border: 1px dashed #cad4cd;
   border-radius: var(--radius-md);

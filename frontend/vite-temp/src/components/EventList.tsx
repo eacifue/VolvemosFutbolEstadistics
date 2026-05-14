@@ -1,6 +1,7 @@
 // Reorganized event list to group by team with clear event icons and aligned remove controls.
 import React from 'react';
 import type { MatchEvent, MatchPlayer } from '../types';
+import { getEventIconById, getEventTypeLabelById, isOwnGoalEvent } from '../constants/eventTypes';
 
 interface EventListProps {
   events: MatchEvent[];
@@ -16,13 +17,14 @@ const EventList: React.FC<EventListProps> = ({ events, players, onRemove }) => {
 
   const renderEvent = (event: MatchEvent) => {
     const player = getPlayer(event.playerId);
-    const icon = event.eventTypeId === 1 ? '⚽' : '🎯';
-    const label = event.eventType?.name || (event.eventTypeId === 1 ? 'Gol' : 'Asistencia');
+    const icon = getEventIconById(event.eventTypeId);
+    const label = event.eventType?.name || getEventTypeLabelById(event.eventTypeId);
+    const isOwnGoal = isOwnGoalEvent(event);
 
     return (
-      <li key={event.id} className="event-item">
+      <li key={event.id} className={`event-item ${isOwnGoal ? 'event-item-own-goal' : ''}`}>
         <div className="event-main-text ellipsis">
-          <span className="event-icon">{icon}</span>
+          <span className={`event-icon ${isOwnGoal ? 'event-icon-own-goal' : ''}`}>{icon}</span>
           {label} - {player?.firstName} {player?.lastName}
         </div>
         {onRemove && (
