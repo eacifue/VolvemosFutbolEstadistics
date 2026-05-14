@@ -147,6 +147,7 @@ namespace MyApi.Controllers
                 Goals = player.Goals,
                 Assists = player.Assists,
                 Matches = player.Matches,
+                OwnGoals = player.OwnGoals,
                 GoalsPerGame = player.GoalsPerGame,
                 Wins = player.Wins,
                 Losses = player.Losses,

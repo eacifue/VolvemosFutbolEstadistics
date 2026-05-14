@@ -1,12 +1,11 @@
 import type { Match, MatchEvent, Player } from '../types';
+import { isGoalForTeam } from '../constants/eventTypes';
 
 export type GoalkeeperStats = {
   goalsConceded: number;
   matchesPlayed: number;
   avgGoalsConceded: number;
 };
-
-const GOAL_EVENT_ID = 1;
 
 const getPositionName = (player: Player): string => {
   const value = player.position;
@@ -27,7 +26,8 @@ const getScoreFromEvents = (events: MatchEvent[] | undefined, teamId: number): n
     return 0;
   }
 
-  return events.filter((event) => event?.teamId === teamId && event?.eventTypeId === GOAL_EVENT_ID).length;
+  const opponentTeamId = teamId === 1 ? 2 : 1;
+  return events.filter((event) => isGoalForTeam(event, teamId, opponentTeamId)).length;
 };
 
 const roundToTwo = (value: number): number => Number(value.toFixed(2));

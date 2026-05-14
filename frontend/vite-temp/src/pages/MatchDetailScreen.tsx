@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Match, MatchEvent, MatchPlayer } from '../types';
 import { getMatch, getMatchEvents, getMatchPlayers, getMatches } from '../services/api';
+import { getEventIconById, getEventTypeLabelById, isGoalForTeam, isOwnGoalEvent } from '../constants/eventTypes';
 import '../styles/MatchDetailScreen.css';
 
 type LoadedMatchDetail = Match & {
@@ -8,24 +9,23 @@ type LoadedMatchDetail = Match & {
   events: MatchEvent[];
 };
 
-const GOAL_EVENT_IDS = new Set([1]);
-
 const formatDate = (value: string) => new Date(value).toLocaleString('es-ES');
 
 const getEventIcon = (event: MatchEvent): string => {
   const label = (event.eventType?.name ?? '').toLowerCase();
 
+  if (label.includes('autogol') || label.includes('owngoal') || label.includes('autogoal')) return '🥅';
   if (event.eventTypeId === 1 || label.includes('gol')) return '⚽';
   if (event.eventTypeId === 2 || label.includes('asist')) return '🎯';
   if (label.includes('amarilla')) return '🟨';
   if (label.includes('roja')) return '🟥';
   if (label.includes('cambio')) return '🔄';
 
-  return '•';
+  return getEventIconById(event.eventTypeId);
 };
 
 const getEventLabel = (event: MatchEvent): string => {
-  return event.eventType?.name ?? (event.eventTypeId === 1 ? 'Gol' : event.eventTypeId === 2 ? 'Asistencia' : 'Evento');
+  return event.eventType?.name ?? getEventTypeLabelById(event.eventTypeId);
 };
 
 const getEventMinute = (event: MatchEvent): string => {
@@ -48,8 +48,8 @@ const renderTeamEvents = (
   return (
     <ul className="events-list events-list-compact">
       {events.map((event) => (
-        <li key={event.id}>
-          <span className="event-icon" aria-hidden="true">{getEventIcon(event)}</span>
+        <li key={event.id} className={isOwnGoalEvent(event) ? 'event-own-goal' : ''}>
+          <span className={`event-icon ${isOwnGoalEvent(event) ? 'event-icon-own-goal' : ''}`} aria-hidden="true">{getEventIcon(event)}</span>
           <span className="event-text">
             {getEventLabel(event)} - Min {getEventMinute(event)} - {getPlayerNameById(event.playerId)}
           </span>
@@ -190,8 +190,11 @@ const MatchDetailScreen: React.FC = () => {
     const homeEvents = selectedMatch.events.filter((event) => event.teamId === 1);
     const awayEvents = selectedMatch.events.filter((event) => event.teamId === 2);
 
-    const homeScore = selectedMatch.events.filter((event) => event.teamId === 1 && GOAL_EVENT_IDS.has(event.eventTypeId)).length;
-    const awayScore = selectedMatch.events.filter((event) => event.teamId === 2 && GOAL_EVENT_IDS.has(event.eventTypeId)).length;
+    const homeTeamId = selectedMatch.homeTeamId ?? 1;
+    const awayTeamId = selectedMatch.awayTeamId ?? 2;
+
+    const homeScore = selectedMatch.events.filter((event) => isGoalForTeam(event, homeTeamId, awayTeamId)).length;
+    const awayScore = selectedMatch.events.filter((event) => isGoalForTeam(event, awayTeamId, homeTeamId)).length;
 
     return { homeName, awayName, homeScore, awayScore, homeLineup, awayLineup, homeEvents, awayEvents };
   }, [selectedMatch]);
@@ -341,8 +344,10 @@ const MatchDetailScreen: React.FC = () => {
                 const awayName = match.awayTeam?.name ?? 'Equipo Visitante';
                 const isFinished = new Date(match.matchDate).getTime() <= Date.now();
 
-                const homeGoals = (match.events ?? []).filter((event) => event.teamId === 1 && GOAL_EVENT_IDS.has(event.eventTypeId)).length;
-                const awayGoals = (match.events ?? []).filter((event) => event.teamId === 2 && GOAL_EVENT_IDS.has(event.eventTypeId)).length;
+                const homeTeamId = match.homeTeamId ?? 1;
+                const awayTeamId = match.awayTeamId ?? 2;
+                const homeGoals = (match.events ?? []).filter((event) => isGoalForTeam(event, homeTeamId, awayTeamId)).length;
+                const awayGoals = (match.events ?? []).filter((event) => isGoalForTeam(event, awayTeamId, homeTeamId)).length;
 
                 return (
                   <button

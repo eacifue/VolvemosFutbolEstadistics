@@ -21,6 +21,9 @@ public class Player
     public int Matches { get; set; }
 
     [NotMapped]
+    public int OwnGoals { get; set; }
+
+    [NotMapped]
     public decimal GoalsPerGame { get; set; }
 
     [NotMapped]

@@ -22,8 +22,10 @@ export interface TopPlayerDto {
   playerId: number;
   firstName: string;
   lastName: string;
+  teamName?: string;
   goals?: number;
   assists?: number;
+  ownGoals?: number;
 }
 
 export interface TeamStatsDto {
@@ -49,6 +51,7 @@ export interface DashboardDto {
   recentMatches: RecentMatchDto[];
   topScorers: TopPlayerDto[];
   topAssists: TopPlayerDto[];
+  topOwnGoals: TopPlayerDto[];
   teamComparison: TeamStatsDto[];
 }
 
@@ -75,6 +78,7 @@ export interface Player {
     goals: number;
     assists: number;
     matches: number;
+    ownGoals: number;
     goalsPerGame: number;
     wins: number;
     losses: number;
@@ -90,6 +94,7 @@ export interface PlayerStatsDto {
     goals: number;
     assists: number;
     matches: number;
+    ownGoals: number;
     goalsPerGame: number;
     wins: number;
     losses: number;

@@ -758,7 +758,7 @@
 .player-stats-row {
   display: grid;
   gap: 0.55rem;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .goalkeeper-stats-row {
@@ -858,6 +858,17 @@
   font-weight: 700;
 }
 
+.stat-item-widget-own-goal {
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.stat-item-widget-own-goal .stat-item-icon,
+.stat-item-widget-own-goal .stat-item-value,
+.stat-item-widget-own-goal .stat-item-label {
+  color: #b91c1c;
+}
+
 .player-card-footer-clean {
   align-items: center;
   display: grid;
@@ -891,7 +902,7 @@
   }
 
   .player-stats-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .goalkeeper-stats-row {
@@ -905,7 +916,7 @@
   }
 
   .player-stats-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .player-main-topline {

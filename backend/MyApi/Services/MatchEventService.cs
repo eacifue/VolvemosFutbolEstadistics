@@ -31,6 +31,10 @@ namespace MyApi.Services
             if (matchEvent == null)
                 throw new ArgumentNullException(nameof(matchEvent));
 
+            var eventTypeExists = await _context.EventTypes.AnyAsync(e => e.Id == matchEvent.EventTypeId);
+            if (!eventTypeExists)
+                throw new InvalidOperationException("Event type is invalid");
+
             // Validate that the player is assigned to the match
             var matchPlayer = await _context.MatchPlayers
                 .FirstOrDefaultAsync(mp => mp.MatchId == matchEvent.MatchId && mp.PlayerId == matchEvent.PlayerId);
@@ -49,6 +53,10 @@ namespace MyApi.Services
             var existingEvent = await _context.MatchEvents.FindAsync(id);
             if (existingEvent == null)
                 return null;
+
+            var eventTypeExists = await _context.EventTypes.AnyAsync(e => e.Id == matchEvent.EventTypeId);
+            if (!eventTypeExists)
+                throw new InvalidOperationException("Event type is invalid");
 
             // Validate that the player is assigned to the match
             var matchPlayer = await _context.MatchPlayers

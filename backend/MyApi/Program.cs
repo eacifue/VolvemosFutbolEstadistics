@@ -151,6 +151,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await SchemaMigrator.EnsureOwnGoalEventTypeAsync(context);
         await AuthSeeder.EnsureAdminUserAsync(context);
         logger.LogInformation("Auth seeder executed successfully.");
     }

@@ -5,6 +5,7 @@ import '../styles/Home.css';
 import type { DashboardDto, RecentMatchDto, TopPlayerDto } from '../types';
 import { getDashboard } from '../services/api';
 import { subscribeStatsRefresh } from '../services/refreshBus';
+import { EVENT_TYPE_IDS, getEventTypeLabelById, isGoalForTeam } from '../constants/eventTypes';
 
 const isToday = (dateString: string): boolean => {
   const date = new Date(dateString);
@@ -26,12 +27,6 @@ const getResultClass = (match: RecentMatchDto): string => {
   if (match.winner === 'Home') return 'result-white-win';
   if (match.winner === 'Away') return 'result-black-win';
   return 'result-draw';
-};
-
-const getEventTypeLabel = (eventTypeId: number): string => {
-  if (eventTypeId === 1) return 'Gol';
-  if (eventTypeId === 2) return 'Asistencia';
-  return 'Evento';
 };
 
 const playerInitials = (player: TopPlayerDto): string => {
@@ -121,6 +116,11 @@ const Home: React.FC = () => {
     if (!data?.topAssists.length) return 1;
     return Math.max(...data.topAssists.map((p) => p.assists ?? 0), 1);
   }, [data?.topAssists]);
+
+  const ownGoalLeader = useMemo(() => {
+    if (!data?.topOwnGoals.length) return 1;
+    return Math.max(...data.topOwnGoals.map((p) => p.ownGoals ?? 0), 1);
+  }, [data?.topOwnGoals]);
 
   if (loading) {
     return (
@@ -290,26 +290,26 @@ const Home: React.FC = () => {
             <div className="grid grid-3 matches-grid">
               {data.recentMatches.map((match) => {
                 const homeGoals = match.events
-                  .filter((e) => e.teamId === match.homeTeamId && e.eventTypeId === 1)
+                  .filter((e) => isGoalForTeam(e, match.homeTeamId, match.awayTeamId))
                   .map((e) => e.playerFullName);
                 const homeAssists = match.events
-                  .filter((e) => e.teamId === match.homeTeamId && e.eventTypeId === 2)
+                  .filter((e) => e.teamId === match.homeTeamId && e.eventTypeId === EVENT_TYPE_IDS.assist)
                   .map((e) => e.playerFullName);
                 const awayGoals = match.events
-                  .filter((e) => e.teamId === match.awayTeamId && e.eventTypeId === 1)
+                  .filter((e) => isGoalForTeam(e, match.awayTeamId, match.homeTeamId))
                   .map((e) => e.playerFullName);
                 const awayAssists = match.events
-                  .filter((e) => e.teamId === match.awayTeamId && e.eventTypeId === 2)
+                  .filter((e) => e.teamId === match.awayTeamId && e.eventTypeId === EVENT_TYPE_IDS.assist)
                   .map((e) => e.playerFullName);
 
                 const homeWinner = match.winner === 'Home';
                 const awayWinner = match.winner === 'Away';
                 const resultBadge = getResultBadge(match);
                 const homeKeyEvents = match.events
-                  .filter((e) => e.teamId === match.homeTeamId && (e.eventTypeId === 1 || e.eventTypeId === 2))
+                  .filter((e) => e.teamId === match.homeTeamId && (e.eventTypeId === EVENT_TYPE_IDS.goal || e.eventTypeId === EVENT_TYPE_IDS.assist || e.eventTypeId === EVENT_TYPE_IDS.ownGoal))
                   .slice(0, 4);
                 const awayKeyEvents = match.events
-                  .filter((e) => e.teamId === match.awayTeamId && (e.eventTypeId === 1 || e.eventTypeId === 2))
+                  .filter((e) => e.teamId === match.awayTeamId && (e.eventTypeId === EVENT_TYPE_IDS.goal || e.eventTypeId === EVENT_TYPE_IDS.assist || e.eventTypeId === EVENT_TYPE_IDS.ownGoal))
                   .slice(0, 4);
                 const totalKeyEvents = homeKeyEvents.length + awayKeyEvents.length;
 
@@ -352,8 +352,8 @@ const Home: React.FC = () => {
                         <p className="stats-item ellipsis"><strong>Asistencias:</strong> {homeAssists.length > 0 ? homeAssists.join(', ') : 'Ninguna'}</p>
                         <div className="events-stack" aria-label="Eventos clave equipo blanco">
                           {homeKeyEvents.length > 0 ? homeKeyEvents.map((event) => (
-                            <span key={event.id} className="event-chip event-chip-white ellipsis">
-                              {getEventTypeLabel(event.eventTypeId)}: {event.playerFullName}
+                            <span key={event.id} className={`event-chip ${event.eventTypeId === EVENT_TYPE_IDS.ownGoal ? 'event-chip-own-goal' : 'event-chip-white'} ellipsis`}>
+                              {getEventTypeLabelById(event.eventTypeId)}: {event.playerFullName}
                             </span>
                           )) : (
                             <span className="event-chip event-chip-empty">Sin eventos clave</span>
@@ -367,8 +367,8 @@ const Home: React.FC = () => {
                         <p className="stats-item ellipsis"><strong>Asistencias:</strong> {awayAssists.length > 0 ? awayAssists.join(', ') : 'Ninguna'}</p>
                         <div className="events-stack" aria-label="Eventos clave equipo negro">
                           {awayKeyEvents.length > 0 ? awayKeyEvents.map((event) => (
-                            <span key={event.id} className="event-chip event-chip-black ellipsis">
-                              {getEventTypeLabel(event.eventTypeId)}: {event.playerFullName}
+                            <span key={event.id} className={`event-chip ${event.eventTypeId === EVENT_TYPE_IDS.ownGoal ? 'event-chip-own-goal' : 'event-chip-black'} ellipsis`}>
+                              {getEventTypeLabelById(event.eventTypeId)}: {event.playerFullName}
                             </span>
                           )) : (
                             <span className="event-chip event-chip-empty">Sin eventos clave</span>
@@ -437,6 +437,33 @@ const Home: React.FC = () => {
                       <div className="player-stat">
                         <span className="stat-value">{assists}</span>
                         <span className="stat-label">🎯 Asist.</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="team-highlight-section team-highlight-section-own-goals">
+              <h3>🥅 Top Autogoles</h3>
+              <div className="players-list">
+                {(data.topOwnGoals ?? []).map((player, idx) => {
+                  const ownGoals = player.ownGoals ?? 0;
+                  const progress = Math.max(8, (ownGoals / ownGoalLeader) * 100);
+                  return (
+                    <div key={player.playerId} className="list-item player-list-item player-list-item-own-goals">
+                      <div className={`rank-badge ${getRankClass(idx + 1)}`}>#{idx + 1}</div>
+                      <div className={`player-avatar ${getAvatarClassById(player.playerId)}`}>{playerInitials(player)}</div>
+                      <div className="player-info">
+                        <h4 className="ellipsis">{player.firstName} {player.lastName}</h4>
+                        <p className="player-subteam ellipsis">{player.teamName || 'Equipo'}</p>
+                        <div className="player-progress player-progress-own-goals">
+                          <span className="player-progress-fill player-progress-fill-own-goals" style={{ width: `${progress}%` }}></span>
+                        </div>
+                      </div>
+                      <div className="player-stat player-stat-own-goals">
+                        <span className="stat-value">{ownGoals}</span>
+                        <span className="stat-label">🔴 Autogoles</span>
                       </div>
                     </div>
                   );

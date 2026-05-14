@@ -28,7 +28,7 @@ CREATE TABLE `Events` (
 
 LOCK TABLES `Events` WRITE;
 /*!40000 ALTER TABLE `Events` DISABLE KEYS */;
-INSERT INTO `Events` VALUES (1,'Gol'),(2,'Asistencia');
+INSERT INTO `Events` VALUES (1,'Gol'),(2,'Asistencia'),(3,'OwnGoal');
 /*!40000 ALTER TABLE `Events` ENABLE KEYS */;
 UNLOCK TABLES;
 
