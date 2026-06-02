@@ -26,6 +26,8 @@ export interface TopPlayerDto {
   goals?: number;
   assists?: number;
   ownGoals?: number;
+  wins?: number;
+  losses?: number;
 }
 
 export interface TeamStatsDto {
@@ -52,6 +54,8 @@ export interface DashboardDto {
   topScorers: TopPlayerDto[];
   topAssists: TopPlayerDto[];
   topOwnGoals: TopPlayerDto[];
+  topWinners: TopPlayerDto[];
+  topLosers: TopPlayerDto[];
   teamComparison: TeamStatsDto[];
 }
 

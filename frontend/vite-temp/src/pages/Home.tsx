@@ -122,6 +122,16 @@ const Home: React.FC = () => {
     return Math.max(...data.topOwnGoals.map((p) => p.ownGoals ?? 0), 1);
   }, [data?.topOwnGoals]);
 
+  const winnerLeader = useMemo(() => {
+    if (!data?.topWinners.length) return 1;
+    return Math.max(...data.topWinners.map((p) => p.wins ?? 0), 1);
+  }, [data?.topWinners]);
+
+  const loserLeader = useMemo(() => {
+    if (!data?.topLosers.length) return 1;
+    return Math.max(...data.topLosers.map((p) => p.losses ?? 0), 1);
+  }, [data?.topLosers]);
+
   if (loading) {
     return (
       <div className="home" aria-busy="true" aria-live="polite" aria-label="Cargando estadisticas">
@@ -388,7 +398,7 @@ const Home: React.FC = () => {
         <div className="container">
           <div className="section-title">
             <h2>Mejores Jugadores</h2>
-            <p>Top 3 goleadores y asistentes de la temporada.</p>
+            <p>Top 5 goleadores, asistencias, autogoles, partidos ganados y perdidos.</p>
           </div>
 
           <div className="teams-highlight">
@@ -464,6 +474,58 @@ const Home: React.FC = () => {
                       <div className="player-stat player-stat-own-goals">
                         <span className="stat-value">{ownGoals}</span>
                         <span className="stat-label">🔴 Autogoles</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="team-highlight-section">
+              <h3>🏆 Top Victorias</h3>
+              <div className="players-list">
+                {(data.topWinners ?? []).map((player, idx) => {
+                  const wins = player.wins ?? 0;
+                  const progress = Math.max(8, (wins / winnerLeader) * 100);
+                  return (
+                    <div key={player.playerId} className="list-item player-list-item">
+                      <div className={`rank-badge ${getRankClass(idx + 1)}`}>#{idx + 1}</div>
+                      <div className={`player-avatar ${getAvatarClassById(player.playerId)}`}>{playerInitials(player)}</div>
+                      <div className="player-info">
+                        <h4 className="ellipsis">{player.firstName} {player.lastName}</h4>
+                        <div className="player-progress">
+                          <span className="player-progress-fill" style={{ width: `${progress}%` }}></span>
+                        </div>
+                      </div>
+                      <div className="player-stat">
+                        <span className="stat-value">{wins}</span>
+                        <span className="stat-label">🏆 Ganados</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="team-highlight-section">
+              <h3>📉 Top Derrotas</h3>
+              <div className="players-list">
+                {(data.topLosers ?? []).map((player, idx) => {
+                  const losses = player.losses ?? 0;
+                  const progress = Math.max(8, (losses / loserLeader) * 100);
+                  return (
+                    <div key={player.playerId} className="list-item player-list-item">
+                      <div className={`rank-badge ${getRankClass(idx + 1)}`}>#{idx + 1}</div>
+                      <div className={`player-avatar ${getAvatarClassById(player.playerId)}`}>{playerInitials(player)}</div>
+                      <div className="player-info">
+                        <h4 className="ellipsis">{player.firstName} {player.lastName}</h4>
+                        <div className="player-progress">
+                          <span className="player-progress-fill" style={{ width: `${progress}%` }}></span>
+                        </div>
+                      </div>
+                      <div className="player-stat">
+                        <span className="stat-value">{losses}</span>
+                        <span className="stat-label">📉 Perdidos</span>
                       </div>
                     </div>
                   );

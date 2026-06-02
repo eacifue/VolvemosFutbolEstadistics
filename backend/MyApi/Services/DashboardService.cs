@@ -156,7 +156,7 @@ namespace MyApi.Services
                 .GroupBy(e => e.PlayerId)
                 .Select(g => new { PlayerId = g.Key, Goals = g.Count() })
                 .OrderByDescending(x => x.Goals)
-                .Take(3)
+                .Take(5)
                 .Join(_context.Players,
                     x => x.PlayerId,
                     p => p.Id,
@@ -178,7 +178,7 @@ namespace MyApi.Services
                 .GroupBy(e => e.PlayerId)
                 .Select(g => new { PlayerId = g.Key, Assists = g.Count() })
                 .OrderByDescending(x => x.Assists)
-                .Take(3)
+                .Take(5)
                 .Join(_context.Players,
                     x => x.PlayerId,
                     p => p.Id,
@@ -209,7 +209,7 @@ namespace MyApi.Services
                     TeamId = g.OrderByDescending(e => e.CreatedAt).Select(e => e.TeamId).FirstOrDefault()
                 })
                 .OrderByDescending(x => x.OwnGoals)
-                .Take(3)
+                .Take(5)
                 .ToListAsync();
 
             var topOwnGoalPlayerIds = topOwnGoalRows.Select(x => x.PlayerId).Distinct().ToList();
@@ -234,6 +234,107 @@ namespace MyApi.Services
                         Goals = 0,
                         Assists = 0,
                         OwnGoals = x.OwnGoals
+                    };
+                })
+                .ToList();
+
+            var matchResultsById = matches
+                .ToDictionary(
+                    m => m.Id,
+                    m =>
+                    {
+                        var score = CountGoalsForMatch(m.Events, m.HomeTeamId, m.AwayTeamId);
+
+                        if (score.HomeGoals == score.AwayGoals)
+                        {
+                            return new { WinnerTeamId = (int?)null, LoserTeamId = (int?)null };
+                        }
+
+                        return score.HomeGoals > score.AwayGoals
+                            ? new { WinnerTeamId = m.HomeTeamId, LoserTeamId = m.AwayTeamId }
+                            : new { WinnerTeamId = m.AwayTeamId, LoserTeamId = m.HomeTeamId };
+                    });
+
+            var matchIds = matchResultsById.Keys.ToList();
+            var matchPlayers = await _context.MatchPlayers
+                .AsNoTracking()
+                .Where(mp => matchIds.Contains(mp.MatchId))
+                .Select(mp => new { mp.PlayerId, mp.MatchId, mp.TeamId })
+                .ToListAsync();
+
+            var winnerRows = matchPlayers
+                .Where(mp =>
+                    matchResultsById.TryGetValue(mp.MatchId, out var result)
+                    && result.WinnerTeamId.HasValue
+                    && mp.TeamId == result.WinnerTeamId.Value)
+                .GroupBy(mp => mp.PlayerId)
+                .Select(g => new { PlayerId = g.Key, Wins = g.Count() })
+                .OrderByDescending(x => x.Wins)
+                .ThenBy(x => x.PlayerId)
+                .Take(5)
+                .ToList();
+
+            var loserRows = matchPlayers
+                .Where(mp =>
+                    matchResultsById.TryGetValue(mp.MatchId, out var result)
+                    && result.LoserTeamId.HasValue
+                    && mp.TeamId == result.LoserTeamId.Value)
+                .GroupBy(mp => mp.PlayerId)
+                .Select(g => new { PlayerId = g.Key, Losses = g.Count() })
+                .OrderByDescending(x => x.Losses)
+                .ThenBy(x => x.PlayerId)
+                .Take(5)
+                .ToList();
+
+            var topWlPlayerIds = winnerRows
+                .Select(x => x.PlayerId)
+                .Concat(loserRows.Select(x => x.PlayerId))
+                .Distinct()
+                .ToList();
+
+            var wlPlayersById = await _context.Players
+                .AsNoTracking()
+                .Where(p => topWlPlayerIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id);
+
+            var topWinners = winnerRows
+                .Where(x => wlPlayersById.ContainsKey(x.PlayerId))
+                .Select(x =>
+                {
+                    var player = wlPlayersById[x.PlayerId];
+
+                    return new TopPlayerDto
+                    {
+                        PlayerId = player.Id,
+                        FirstName = player.FirstName,
+                        LastName = player.LastName,
+                        TeamName = string.Empty,
+                        Goals = 0,
+                        Assists = 0,
+                        OwnGoals = 0,
+                        Wins = x.Wins,
+                        Losses = 0
+                    };
+                })
+                .ToList();
+
+            var topLosers = loserRows
+                .Where(x => wlPlayersById.ContainsKey(x.PlayerId))
+                .Select(x =>
+                {
+                    var player = wlPlayersById[x.PlayerId];
+
+                    return new TopPlayerDto
+                    {
+                        PlayerId = player.Id,
+                        FirstName = player.FirstName,
+                        LastName = player.LastName,
+                        TeamName = string.Empty,
+                        Goals = 0,
+                        Assists = 0,
+                        OwnGoals = 0,
+                        Wins = 0,
+                        Losses = x.Losses
                     };
                 })
                 .ToList();
@@ -284,6 +385,8 @@ namespace MyApi.Services
                 TopScorers = topScorers,
                 TopAssists = topAssists,
                 TopOwnGoals = topOwnGoals,
+                TopWinners = topWinners,
+                TopLosers = topLosers,
                 TeamComparison = teamComparison
             };
         }
