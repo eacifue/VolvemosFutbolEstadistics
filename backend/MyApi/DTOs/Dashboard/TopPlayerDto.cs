@@ -9,5 +9,7 @@ namespace MyApi.DTOs.Dashboard
         public int Goals { get; init; }
         public int Assists { get; init; }
         public int OwnGoals { get; init; }
+        public int Wins { get; init; }
+        public int Losses { get; init; }
     }
 }

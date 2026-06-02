@@ -13,6 +13,8 @@ namespace MyApi.DTOs.Dashboard
         public IEnumerable<TopPlayerDto> TopScorers { get; init; } = new List<TopPlayerDto>();
         public IEnumerable<TopPlayerDto> TopAssists { get; init; } = new List<TopPlayerDto>();
         public IEnumerable<TopPlayerDto> TopOwnGoals { get; init; } = new List<TopPlayerDto>();
+        public IEnumerable<TopPlayerDto> TopWinners { get; init; } = new List<TopPlayerDto>();
+        public IEnumerable<TopPlayerDto> TopLosers { get; init; } = new List<TopPlayerDto>();
         public IEnumerable<TeamStatsDto> TeamComparison { get; init; } = new List<TeamStatsDto>();
     }
 }
