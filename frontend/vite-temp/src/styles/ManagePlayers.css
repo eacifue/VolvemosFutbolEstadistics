@@ -373,6 +373,12 @@
     white-space: normal;
   }
 
+  .position-badge {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
   .btn-edit,
   .btn-delete {
     min-width: 44px;

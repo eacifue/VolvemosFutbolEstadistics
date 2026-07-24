@@ -786,8 +786,13 @@
     grid-template-columns: 88px 1fr auto;
   }
 
-  .player-list-item {
-    grid-template-columns: auto 1fr auto;
+  .stats-item,
+  .event-chip,
+  .player-info h4,
+  .player-subteam {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
   }
 
   .scoreboard {

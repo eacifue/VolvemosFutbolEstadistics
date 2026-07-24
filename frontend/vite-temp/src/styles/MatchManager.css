@@ -448,6 +448,14 @@
     padding: var(--space-2);
   }
 
+  .player-meta strong,
+  .player-meta span,
+  .event-main-text {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
   .matches-list li {
     padding: var(--space-2);
   }
