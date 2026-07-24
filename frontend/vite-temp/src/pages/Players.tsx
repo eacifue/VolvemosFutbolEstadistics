@@ -7,6 +7,7 @@ import type { Match, Player } from '../types';
 import { getMatches, getPlayers } from '../services/api';
 import { subscribeStatsRefresh } from '../services/refreshBus';
 import { getGoalkeeperStats, isGoalkeeperPlayer } from '../utils/goalkeeperStats';
+import { getFriendlyErrorMessage } from '../utils/errorMessages';
 
 const getPlayerPhoto = (player: Player): string | undefined => {
   const possibleUrls = [
@@ -38,7 +39,8 @@ const Players: React.FC = () => {
       });
       setError(null);
     } catch (err: any) {
-      setError(err.message ?? 'Error cargando jugadores');
+      console.error('Error loading players:', err);
+      setError(getFriendlyErrorMessage(err, 'No se pudo cargar la lista de jugadores.'));
     } finally {
       setLoading(false);
     }

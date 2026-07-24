@@ -15,6 +15,11 @@
   --color-danger: #dc2626;
   --color-warning: #d97706;
 
+  /* Playful accent — energy/banter moments distinct from status colors (today, draws, streaks) */
+  --color-spark: #ea580c;
+  --color-spark-soft-bg: #ffedd5;
+  --color-spark-soft-text: #9a3412;
+
   /* Typography */
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-size-xs: 0.75rem;

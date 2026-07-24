@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Match, MatchEvent, MatchPlayer } from '../types';
 import { getMatch, getMatchEvents, getMatchPlayers, getMatches } from '../services/api';
 import { getEventIconById, getEventTypeLabelById, isGoalForTeam, isOwnGoalEvent } from '../constants/eventTypes';
+import { getFriendlyErrorMessage } from '../utils/errorMessages';
 import '../styles/MatchDetailScreen.css';
 
 type LoadedMatchDetail = Match & {
@@ -129,7 +130,8 @@ const MatchDetailScreen: React.FC = () => {
       setSelectedMatchId(initialMatchId);
       await loadMatchDetail(initialMatchId);
     } catch (err: any) {
-      setError(err?.message ?? 'No se pudieron cargar los partidos.');
+      console.error('Error loading matches:', err);
+      setError(getFriendlyErrorMessage(err, 'No se pudieron cargar los partidos.'));
     } finally {
       setIsLoading(false);
     }
@@ -164,7 +166,8 @@ const MatchDetailScreen: React.FC = () => {
     try {
       await loadMatchDetail(matchId);
     } catch (err: any) {
-      setError(err?.message ?? 'No se pudo cargar el detalle del partido.');
+      console.error('Error loading match detail:', err);
+      setError(getFriendlyErrorMessage(err, 'No se pudo cargar el detalle del partido.'));
     }
   };
 
@@ -264,7 +267,7 @@ const MatchDetailScreen: React.FC = () => {
                 </div>
               </header>
 
-              <div className="scoreboard" aria-label="Marcador del partido">
+              <div className="detail-scoreboard" aria-label="Marcador del partido">
                 <span>{detail.homeScore}</span>
                 <span className="score-separator">-</span>
                 <span>{detail.awayScore}</span>

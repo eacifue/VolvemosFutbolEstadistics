@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import '../styles/ManagePlayers.css';
 import type { Player, Position } from '../types';
 import { getPlayers, createPlayer, updatePlayer, deletePlayer, getPositions } from '../services/api';
+import Notification from '../components/Notification';
+import { getFriendlyErrorMessage } from '../utils/errorMessages';
 
 interface FormData {
   firstName: string;
@@ -22,6 +24,22 @@ const ManagePlayers: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteCandidate, setDeleteCandidate] = useState<Player | null>(null);
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error' | 'warning' | 'info';
+    message: string;
+    show: boolean;
+  }>({ type: 'info', message: '', show: false });
+
+  const showNotification = (type: 'success' | 'error' | 'warning' | 'info', message: string) => {
+    setNotification({ type, message, show: true });
+    setTimeout(() => {
+      setNotification((prev) => ({ ...prev, show: false }));
+    }, 5000);
+  };
+
+  const hideNotification = () => {
+    setNotification((prev) => ({ ...prev, show: false }));
+  };
 
   useEffect(() => {
     loadData();
@@ -33,7 +51,8 @@ const ManagePlayers: React.FC = () => {
       setPlayers(playersData);
       setPositions(positionsData);
     } catch (err: any) {
-      setError(err.message);
+      console.error('Error loading players/positions:', err);
+      setError(getFriendlyErrorMessage(err, 'No se pudo cargar la plantilla de jugadores.'));
     } finally {
       setLoading(false);
     }
@@ -95,12 +114,16 @@ const ManagePlayers: React.FC = () => {
 
   const confirmDeletePlayer = async () => {
     if (!deleteCandidate) return;
+    const { firstName, lastName } = deleteCandidate;
     try {
       await deletePlayer(deleteCandidate.id);
-      setDeleteCandidate(null);
+      showNotification('success', `${firstName} ${lastName} fue eliminado correctamente.`);
       loadData();
     } catch (err) {
       console.error('Error deleting player:', err);
+      showNotification('error', `No se pudo eliminar a ${firstName} ${lastName}. Intenta nuevamente.`);
+    } finally {
+      setDeleteCandidate(null);
     }
   };
 
@@ -146,6 +169,16 @@ const ManagePlayers: React.FC = () => {
 
   return (
     <div className="manage-players-page page-enter">
+      {notification.show && (
+        <Notification
+          type={notification.type}
+          message={notification.message}
+          onClose={hideNotification}
+          duration={5000}
+          position="top-right"
+        />
+      )}
+
       {deleteCandidate && (
         <div className="confirmation-modal-overlay" onClick={() => setDeleteCandidate(null)}>
           <div className="confirmation-dialog" onClick={(e) => e.stopPropagation()}>

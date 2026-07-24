@@ -5,6 +5,7 @@ import '../styles/Home.css';
 import type { DashboardDto, RecentMatchDto, TopPlayerDto } from '../types';
 import { getDashboard } from '../services/api';
 import { subscribeStatsRefresh } from '../services/refreshBus';
+import { getFriendlyErrorMessage } from '../utils/errorMessages';
 import { EVENT_TYPE_IDS, getEventTypeLabelById, isGoalForTeam } from '../constants/eventTypes';
 
 const isToday = (dateString: string): boolean => {
@@ -23,10 +24,10 @@ const getResultBadge = (match: RecentMatchDto): 'Ganador Equipo Blanco' | 'Ganad
   return 'EMPATE';
 };
 
-const getResultClass = (match: RecentMatchDto): string => {
-  if (match.winner === 'Home') return 'result-white-win';
-  if (match.winner === 'Away') return 'result-black-win';
-  return 'result-draw';
+const getMatchOutcome = (match: RecentMatchDto): 'white' | 'black' | 'draw' => {
+  if (match.winner === 'Home') return 'white';
+  if (match.winner === 'Away') return 'black';
+  return 'draw';
 };
 
 const playerInitials = (player: TopPlayerDto): string => {
@@ -70,6 +71,7 @@ const Home: React.FC = () => {
   const [data, setData] = useState<DashboardDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showMoreStats, setShowMoreStats] = useState(false);
 
   const fetchDashboard = async () => {
     try {
@@ -77,7 +79,8 @@ const Home: React.FC = () => {
       setData(json as DashboardDto);
       setError(null);
     } catch (err: any) {
-      setError(err.message ?? 'Error cargando dashboard');
+      console.error('Error loading dashboard:', err);
+      setError(getFriendlyErrorMessage(err, 'No se pudo cargar el panel de estadisticas.'));
     } finally {
       setLoading(false);
     }
@@ -235,6 +238,140 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      <section className="latest-matches">
+        <div className="container">
+          <div className="section-title">
+            <h2>Ultimos Partidos</h2>
+            <p>Lo que paso la ultima vez que nos juntamos a jugar.</p>
+          </div>
+
+          {data.recentMatches.length === 0 ? (
+            <div className="empty-state-card">
+              <p className="empty-state-icon">⚽</p>
+              <h3>Aun no hay partidos registrados</h3>
+              <p>Comienza creando el proximo encuentro desde el panel de administracion.</p>
+              <Link to="/admin" className="btn btn-primary">Crear primer partido</Link>
+            </div>
+          ) : (
+            <div className="grid grid-3 matches-grid">
+              {data.recentMatches.map((match) => {
+                const homeGoals = match.events
+                  .filter((e) => isGoalForTeam(e, match.homeTeamId, match.awayTeamId))
+                  .map((e) => e.playerFullName);
+                const homeAssists = match.events
+                  .filter((e) => e.teamId === match.homeTeamId && e.eventTypeId === EVENT_TYPE_IDS.assist)
+                  .map((e) => e.playerFullName);
+                const awayGoals = match.events
+                  .filter((e) => isGoalForTeam(e, match.awayTeamId, match.homeTeamId))
+                  .map((e) => e.playerFullName);
+                const awayAssists = match.events
+                  .filter((e) => e.teamId === match.awayTeamId && e.eventTypeId === EVENT_TYPE_IDS.assist)
+                  .map((e) => e.playerFullName);
+
+                const homeWinner = match.winner === 'Home';
+                const awayWinner = match.winner === 'Away';
+                const resultBadge = getResultBadge(match);
+                const outcome = getMatchOutcome(match);
+                const matchIsToday = isToday(match.matchDate);
+                const homeKeyEvents = match.events
+                  .filter((e) => e.teamId === match.homeTeamId && (e.eventTypeId === EVENT_TYPE_IDS.goal || e.eventTypeId === EVENT_TYPE_IDS.assist || e.eventTypeId === EVENT_TYPE_IDS.ownGoal))
+                  .slice(0, 4);
+                const awayKeyEvents = match.events
+                  .filter((e) => e.teamId === match.awayTeamId && (e.eventTypeId === EVENT_TYPE_IDS.goal || e.eventTypeId === EVENT_TYPE_IDS.assist || e.eventTypeId === EVENT_TYPE_IDS.ownGoal))
+                  .slice(0, 4);
+                const totalKeyEvents = homeKeyEvents.length + awayKeyEvents.length;
+
+                return (
+                  <article key={match.id} className={`card match-card match-result-${outcome} fade-in`}>
+                    <header className="match-header">
+                      <div className="match-header-left">
+                        <span className="match-date">{new Date(match.matchDate).toLocaleDateString('es-CO')}</span>
+                        {matchIsToday && (
+                          <span className="live-badge" aria-label="Partido jugado hoy">
+                            <span className="live-dot"></span>
+                            HOY
+                          </span>
+                        )}
+                        <span className="match-meta-pill">{totalKeyEvents} eventos clave</span>
+                      </div>
+                      <span className="badge badge-dark result-badge">
+                        <span className={`result-dot result-dot-${outcome}`} aria-hidden="true" />
+                        {resultBadge}
+                      </span>
+                    </header>
+
+                    <div className="scoreboard match-teams">
+                      <div className={`score-team team ${homeWinner ? 'team-winner' : ''}`}>
+                        <span className="team-color-dot team-color-white" aria-hidden="true"></span>
+                        <span className="score-team-name team-name ellipsis">EQUIPO BLANCO</span>
+                        <span className={`score-value team-score ${matchIsToday && homeWinner ? 'score-value-celebrate' : ''}`}>{match.homeGoals}</span>
+                      </div>
+                      <div className="score-separator vs">:</div>
+                      <div className={`score-team team ${awayWinner ? 'team-winner' : ''}`}>
+                        <span className="team-color-dot team-color-black" aria-hidden="true"></span>
+                        <span className="score-team-name team-name ellipsis">EQUIPO NEGRO</span>
+                        <span className={`score-value team-score ${matchIsToday && awayWinner ? 'score-value-celebrate' : ''}`}>{match.awayGoals}</span>
+                      </div>
+                    </div>
+
+                    <div className="score-stage">Resultado Final</div>
+
+                    <div className="match-stats">
+                      <div className="team-details team-details-white">
+                        <p className="team-label"><span className="team-color-dot team-color-white"></span>Equipo Blanco</p>
+                        <p className="stats-item ellipsis"><strong>Goles:</strong> {homeGoals.length > 0 ? homeGoals.join(', ') : 'Ninguno'}</p>
+                        <p className="stats-item ellipsis"><strong>Asistencias:</strong> {homeAssists.length > 0 ? homeAssists.join(', ') : 'Ninguna'}</p>
+                        <div className="events-stack" aria-label="Eventos clave equipo blanco">
+                          {homeKeyEvents.length > 0 ? homeKeyEvents.map((event) => (
+                            <span key={event.id} className={`event-chip ${event.eventTypeId === EVENT_TYPE_IDS.ownGoal ? 'event-chip-own-goal' : 'event-chip-white'} ellipsis`}>
+                              {getEventTypeLabelById(event.eventTypeId)}: {event.playerFullName}
+                            </span>
+                          )) : (
+                            <span className="event-chip event-chip-empty">Sin eventos clave</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="divider"></div>
+                      <div className="team-details team-details-black">
+                        <p className="team-label"><span className="team-color-dot team-color-black"></span>Equipo Negro</p>
+                        <p className="stats-item ellipsis"><strong>Goles:</strong> {awayGoals.length > 0 ? awayGoals.join(', ') : 'Ninguno'}</p>
+                        <p className="stats-item ellipsis"><strong>Asistencias:</strong> {awayAssists.length > 0 ? awayAssists.join(', ') : 'Ninguna'}</p>
+                        <div className="events-stack" aria-label="Eventos clave equipo negro">
+                          {awayKeyEvents.length > 0 ? awayKeyEvents.map((event) => (
+                            <span key={event.id} className={`event-chip ${event.eventTypeId === EVENT_TYPE_IDS.ownGoal ? 'event-chip-own-goal' : 'event-chip-black'} ellipsis`}>
+                              {getEventTypeLabelById(event.eventTypeId)}: {event.playerFullName}
+                            </span>
+                          )) : (
+                            <span className="event-chip event-chip-empty">Sin eventos clave</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="more-stats-toggle">
+        <div className="container">
+          <button
+            type="button"
+            className="btn btn-secondary more-stats-button"
+            onClick={() => setShowMoreStats((prev) => !prev)}
+            aria-expanded={showMoreStats}
+            aria-controls="more-stats-panel"
+          >
+            {showMoreStats ? 'Ocultar estadisticas detalladas' : 'Ver mas estadisticas'}
+            <span aria-hidden="true" className={`more-stats-chevron ${showMoreStats ? 'more-stats-chevron-open' : ''}`}>▾</span>
+          </button>
+        </div>
+      </section>
+
+      {showMoreStats && (
+      <div id="more-stats-panel">
       {/* WINS DISTRIBUTION — segmented bar */}
       {data.totalMatches > 0 && (
         <section className="wins-distribution" aria-label="Distribucion de resultados">
@@ -282,123 +419,11 @@ const Home: React.FC = () => {
         </section>
       )}
 
-      <section className="latest-matches">
-        <div className="container">
-          <div className="section-title">
-            <h2>Ultimos Partidos</h2>
-            <p>El clasico Blanco vs Negro en formato marcador de estadio.</p>
-          </div>
-
-          {data.recentMatches.length === 0 ? (
-            <div className="empty-state-card">
-              <p className="empty-state-icon">⚽</p>
-              <h3>Aun no hay partidos registrados</h3>
-              <p>Comienza creando el proximo encuentro desde el panel de administracion.</p>
-              <Link to="/admin" className="btn btn-primary">Crear primer partido</Link>
-            </div>
-          ) : (
-            <div className="grid grid-3 matches-grid">
-              {data.recentMatches.map((match) => {
-                const homeGoals = match.events
-                  .filter((e) => isGoalForTeam(e, match.homeTeamId, match.awayTeamId))
-                  .map((e) => e.playerFullName);
-                const homeAssists = match.events
-                  .filter((e) => e.teamId === match.homeTeamId && e.eventTypeId === EVENT_TYPE_IDS.assist)
-                  .map((e) => e.playerFullName);
-                const awayGoals = match.events
-                  .filter((e) => isGoalForTeam(e, match.awayTeamId, match.homeTeamId))
-                  .map((e) => e.playerFullName);
-                const awayAssists = match.events
-                  .filter((e) => e.teamId === match.awayTeamId && e.eventTypeId === EVENT_TYPE_IDS.assist)
-                  .map((e) => e.playerFullName);
-
-                const homeWinner = match.winner === 'Home';
-                const awayWinner = match.winner === 'Away';
-                const resultBadge = getResultBadge(match);
-                const homeKeyEvents = match.events
-                  .filter((e) => e.teamId === match.homeTeamId && (e.eventTypeId === EVENT_TYPE_IDS.goal || e.eventTypeId === EVENT_TYPE_IDS.assist || e.eventTypeId === EVENT_TYPE_IDS.ownGoal))
-                  .slice(0, 4);
-                const awayKeyEvents = match.events
-                  .filter((e) => e.teamId === match.awayTeamId && (e.eventTypeId === EVENT_TYPE_IDS.goal || e.eventTypeId === EVENT_TYPE_IDS.assist || e.eventTypeId === EVENT_TYPE_IDS.ownGoal))
-                  .slice(0, 4);
-                const totalKeyEvents = homeKeyEvents.length + awayKeyEvents.length;
-
-                return (
-                  <article key={match.id} className={`card match-card ${getResultClass(match)} fade-in`}>
-                    <header className="match-header">
-                      <div className="match-header-left">
-                        <span className="match-date">{new Date(match.matchDate).toLocaleDateString('es-CO')}</span>
-                        {isToday(match.matchDate) && (
-                          <span className="live-badge" aria-label="Partido jugado hoy">
-                            <span className="live-dot"></span>
-                            HOY
-                          </span>
-                        )}
-                        <span className="match-meta-pill">{totalKeyEvents} eventos clave</span>
-                      </div>
-                      <span className="badge badge-dark">{resultBadge}</span>
-                    </header>
-
-                    <div className="scoreboard match-teams">
-                      <div className={`score-team team ${homeWinner ? 'team-winner' : ''}`}>
-                        <span className="team-color-dot team-color-white" aria-hidden="true"></span>
-                        <span className="score-team-name team-name ellipsis">EQUIPO BLANCO</span>
-                        <span className="score-value team-score">{match.homeGoals}</span>
-                      </div>
-                      <div className="score-separator vs">:</div>
-                      <div className={`score-team team ${awayWinner ? 'team-winner' : ''}`}>
-                        <span className="team-color-dot team-color-black" aria-hidden="true"></span>
-                        <span className="score-team-name team-name ellipsis">EQUIPO NEGRO</span>
-                        <span className="score-value team-score">{match.awayGoals}</span>
-                      </div>
-                    </div>
-
-                    <div className="score-stage">Resultado Final</div>
-
-                    <div className="match-stats">
-                      <div className="team-details team-details-white">
-                        <p className="team-label"><span className="team-color-dot team-color-white"></span>Equipo Blanco</p>
-                        <p className="stats-item ellipsis"><strong>Goles:</strong> {homeGoals.length > 0 ? homeGoals.join(', ') : 'Ninguno'}</p>
-                        <p className="stats-item ellipsis"><strong>Asistencias:</strong> {homeAssists.length > 0 ? homeAssists.join(', ') : 'Ninguna'}</p>
-                        <div className="events-stack" aria-label="Eventos clave equipo blanco">
-                          {homeKeyEvents.length > 0 ? homeKeyEvents.map((event) => (
-                            <span key={event.id} className={`event-chip ${event.eventTypeId === EVENT_TYPE_IDS.ownGoal ? 'event-chip-own-goal' : 'event-chip-white'} ellipsis`}>
-                              {getEventTypeLabelById(event.eventTypeId)}: {event.playerFullName}
-                            </span>
-                          )) : (
-                            <span className="event-chip event-chip-empty">Sin eventos clave</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="divider"></div>
-                      <div className="team-details team-details-black">
-                        <p className="team-label"><span className="team-color-dot team-color-black"></span>Equipo Negro</p>
-                        <p className="stats-item ellipsis"><strong>Goles:</strong> {awayGoals.length > 0 ? awayGoals.join(', ') : 'Ninguno'}</p>
-                        <p className="stats-item ellipsis"><strong>Asistencias:</strong> {awayAssists.length > 0 ? awayAssists.join(', ') : 'Ninguna'}</p>
-                        <div className="events-stack" aria-label="Eventos clave equipo negro">
-                          {awayKeyEvents.length > 0 ? awayKeyEvents.map((event) => (
-                            <span key={event.id} className={`event-chip ${event.eventTypeId === EVENT_TYPE_IDS.ownGoal ? 'event-chip-own-goal' : 'event-chip-black'} ellipsis`}>
-                              {getEventTypeLabelById(event.eventTypeId)}: {event.playerFullName}
-                            </span>
-                          )) : (
-                            <span className="event-chip event-chip-empty">Sin eventos clave</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
-
       <section className="highlights">
         <div className="container">
           <div className="section-title">
             <h2>Mejores Jugadores</h2>
-            <p>Top 5 goleadores, asistencias, autogoles, partidos ganados y perdidos.</p>
+            <p>Quien la esta rompiendo (y quien no) en la temporada.</p>
           </div>
 
           <div className="teams-highlight">
@@ -455,14 +480,17 @@ const Home: React.FC = () => {
             </div>
 
             <div className="team-highlight-section team-highlight-section-own-goals">
-              <h3>🥅 Top Autogoles</h3>
+              <h3>🙈 Salon de la Vergüenza</h3>
+              <p className="own-goals-caption">Aqui no hay podio, hay penitencia.</p>
               <div className="players-list">
                 {(data.topOwnGoals ?? []).map((player, idx) => {
                   const ownGoals = player.ownGoals ?? 0;
                   const progress = Math.max(8, (ownGoals / ownGoalLeader) * 100);
                   return (
                     <div key={player.playerId} className="list-item player-list-item player-list-item-own-goals">
-                      <div className={`rank-badge ${getRankClass(idx + 1)}`}>#{idx + 1}</div>
+                      <div className="rank-badge rank-default">
+                        {idx === 0 ? <span className="shame-crown" title="El mas autogoleador de la temporada">👑</span> : `#${idx + 1}`}
+                      </div>
                       <div className={`player-avatar ${getAvatarClassById(player.playerId)}`}>{playerInitials(player)}</div>
                       <div className="player-info">
                         <h4 className="ellipsis">{player.firstName} {player.lastName}</h4>
@@ -473,7 +501,7 @@ const Home: React.FC = () => {
                       </div>
                       <div className="player-stat player-stat-own-goals">
                         <span className="stat-value">{ownGoals}</span>
-                        <span className="stat-label">🔴 Autogoles</span>
+                        <span className="stat-label">🥅 Autogoles</span>
                       </div>
                     </div>
                   );
@@ -540,7 +568,7 @@ const Home: React.FC = () => {
         <div className="container">
           <div className="section-title">
             <h2>Cara a Cara</h2>
-            <p>Comparativa directa entre Equipo Blanco y Equipo Negro.</p>
+            <p>El eterno clasico: Blanco vs Negro, mano a mano.</p>
           </div>
 
           {h2hRows.length > 0 ? (
@@ -604,12 +632,14 @@ const Home: React.FC = () => {
           )}
         </div>
       </section>
+      </div>
+      )}
 
       <section className="cta-section">
         <div className="container">
           <div className="cta-content">
             <h2>Listo para ver mas?</h2>
-            <p>Explora todos los jugadores y administra el clasico desde un panel rapido y claro.</p>
+            <p>Mira la plantilla completa o arma el proximo picadito.</p>
             <div className="cta-buttons">
               <Link to="/jugadores" className="btn btn-accent">Ver Jugadores</Link>
               <Link to="/admin" className="btn btn-secondary">Ir a Admin</Link>

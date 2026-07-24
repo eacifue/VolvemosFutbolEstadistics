@@ -78,7 +78,7 @@ const MatchCreator: React.FC<MatchCreatorProps> = ({ onCreate, editingMatch, onU
           >
             <option value="">Seleccionar</option>
             {teams.map((team) => (
-              <option key={team.id} value={team.id}>{team.name}</option>
+              <option key={team.id} value={team.id} disabled={team.id === awayTeamId}>{team.name}</option>
             ))}
           </select>
         </div>
@@ -92,7 +92,7 @@ const MatchCreator: React.FC<MatchCreatorProps> = ({ onCreate, editingMatch, onU
           >
             <option value="">Seleccionar</option>
             {teams.map((team) => (
-              <option key={team.id} value={team.id}>{team.name}</option>
+              <option key={team.id} value={team.id} disabled={team.id === homeTeamId}>{team.name}</option>
             ))}
           </select>
         </div>

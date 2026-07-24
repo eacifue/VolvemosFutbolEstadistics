@@ -118,6 +118,27 @@
   padding: var(--space-12) 0;
 }
 
+.more-stats-toggle {
+  display: flex;
+  justify-content: center;
+  padding: 0 0 var(--space-8);
+}
+
+.more-stats-button {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.more-stats-chevron {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.more-stats-chevron-open {
+  transform: rotate(180deg);
+}
+
 .section-title {
   margin-bottom: var(--space-6);
 }
@@ -168,16 +189,29 @@
   transform: translateY(-2px);
 }
 
-.match-card.result-white-win {
-  border-left: 6px solid var(--color-success);
+.result-badge {
+  gap: 6px;
 }
 
-.match-card.result-black-win {
-  border-left: 6px solid #6b7280;
+.result-dot {
+  border-radius: var(--radius-full);
+  display: inline-block;
+  flex-shrink: 0;
+  height: 8px;
+  width: 8px;
 }
 
-.match-card.result-draw {
-  border-left: 6px solid var(--color-warning);
+.result-dot-white {
+  background: #f8fafc;
+}
+
+.result-dot-black {
+  background: transparent;
+  border: 1.5px solid #f8fafc;
+}
+
+.result-dot-draw {
+  background: var(--color-spark);
 }
 
 .match-header {
@@ -213,9 +247,9 @@
 
 .live-badge {
   align-items: center;
-  background: #fee2e2;
+  background: var(--color-spark-soft-bg);
   border-radius: var(--radius-full);
-  color: #991b1b;
+  color: var(--color-spark-soft-text);
   display: inline-flex;
   font-size: var(--font-size-xs);
   font-weight: 800;
@@ -225,7 +259,7 @@
 
 .live-dot {
   animation: pulse 1.2s infinite;
-  background: #dc2626;
+  background: var(--color-spark);
   border-radius: var(--radius-full);
   display: inline-block;
   height: 8px;
@@ -277,6 +311,22 @@
   font-size: clamp(3rem, 6vw, 3.4rem);
   font-weight: 900;
   line-height: 1;
+}
+
+.score-value-celebrate {
+  animation: score-celebrate 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes score-celebrate {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.22);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .score-separator {
@@ -517,6 +567,18 @@
 
 .team-highlight-section-own-goals h3 {
   color: #b91c1c;
+}
+
+.own-goals-caption {
+  color: #b45309;
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  margin: -2px 0 var(--space-3);
+}
+
+.shame-crown {
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .player-list-item-own-goals {
