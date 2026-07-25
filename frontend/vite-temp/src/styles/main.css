@@ -15,6 +15,8 @@ body,
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -229,9 +231,19 @@ textarea {
   border: 1px solid #cfd8d2;
   border-radius: var(--radius-md);
   color: var(--color-text);
+  max-width: 100%;
   min-width: 0;
   padding: var(--space-3) var(--space-4);
   width: 100%;
+}
+
+/* iOS Safari renders date/time inputs with a native minimum width that can
+   ignore the width above; dropping the native appearance lets it shrink. */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 input::placeholder,
