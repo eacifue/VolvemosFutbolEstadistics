@@ -353,6 +353,13 @@
   border-color: #303030;
 }
 
+/* On the dark scoreboard the near-black fill disappears into the background;
+   a hollow ring reads as "black team" there instead of vanishing. */
+.scoreboard .team-color-black {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
 .match-stats {
   background: #f7f9f7;
   border-radius: var(--radius-md);
