@@ -27,6 +27,7 @@ export interface MatchEntry {
   playerId: number;
   playerName: string;
   teamId: number;
+  positionName?: string;
   goals: number;
   assists: number;
   ownGoals: number;
@@ -39,6 +40,7 @@ export const matchEntries = (match: Match): MatchEntry[] => {
       playerId: mp.playerId,
       playerName: mp.player ? `${mp.player.firstName} ${mp.player.lastName}` : '—',
       teamId: mp.teamId,
+      positionName: mp.player?.position?.name,
       goals: playerEvents.filter((e) => e.eventTypeId === GOAL).length,
       assists: playerEvents.filter((e) => e.eventTypeId === ASSIST).length,
       ownGoals: playerEvents.filter((e) => e.eventTypeId === OWN_GOAL).length,

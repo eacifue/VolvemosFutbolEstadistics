@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Match } from '../types';
 import { matchScore, matchEntries, TEAM_WHITE, TEAM_BLACK } from '../utils/teamStats';
+import MatchFormationField from '../components/MatchFormationField';
 
 const formatDate = (iso: string): string => {
   try {
@@ -52,31 +53,29 @@ const PartidosTab: React.FC<Props> = ({ matches, loading }) => {
           </div>
         </div>
 
+        <div className="match-drag-hint">
+          <i className="ph ph-arrows-out-cardinal" /> Arrastra a un jugador para reubicarlo en la cancha
+        </div>
+
         {[
-          { label: 'Equipo Blanco', teamId: TEAM_WHITE, tagClass: 'tag-neutral' },
-          { label: 'Equipo Negro', teamId: TEAM_BLACK, tagClass: 'tag-accent-2' },
+          { label: 'Blanco', teamId: TEAM_WHITE, tagClass: 'tag-neutral', jerseyBg: 'var(--color-neutral-300)', gkBg: 'var(--color-accent-400)' },
+          { label: 'Negro', teamId: TEAM_BLACK, tagClass: 'tag-accent-2', jerseyBg: 'var(--color-accent-2-400)', gkBg: 'var(--color-accent-400)' },
         ].map((group) => {
           const groupEntries = entries.filter((entry) => entry.teamId === group.teamId);
           if (groupEntries.length === 0) return null;
           return (
             <div key={group.teamId}>
               <div className="section-label">
-                <span className={`tag ${group.tagClass}`}>{group.label}</span>
+                <span className={`tag ${group.tagClass}`}>Equipo {group.label}</span>
               </div>
-              <div className="entry-list">
-                {groupEntries.map((entry) => (
-                  <div key={entry.playerId} className="entry-row">
-                    <div className="entry-player">{entry.playerName}</div>
-                    <div className="entry-stat">
-                      <i className="ph-fill ph-soccer-ball" /> {entry.goals}
-                    </div>
-                    <div className="entry-stat">
-                      <i className="ph ph-target" /> {entry.assists}
-                    </div>
-                    <div className="entry-owngoal">{entry.ownGoals ? `AG ${entry.ownGoals}` : ''}</div>
-                  </div>
-                ))}
-              </div>
+              <MatchFormationField
+                key={`${selected.id}-${group.teamId}`}
+                matchId={selected.id}
+                teamId={group.teamId}
+                entries={groupEntries}
+                jerseyBg={group.jerseyBg}
+                gkBg={group.gkBg}
+              />
             </div>
           );
         })}

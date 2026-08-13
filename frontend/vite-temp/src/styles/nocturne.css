@@ -389,6 +389,98 @@ table {
   color: var(--color-accent-2-300);
 }
 
+.match-drag-hint {
+  font-size: 12px;
+  color: var(--color-neutral-500);
+  margin-bottom: var(--nc-space-3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.match-field {
+  background: linear-gradient(180deg, #2f5c40, #274d35);
+  border-radius: var(--nc-radius-lg);
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  touch-action: none;
+  margin-bottom: var(--nc-space-5);
+}
+
+.match-field-border {
+  position: absolute;
+  inset: var(--nc-space-3);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.match-field-circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 70px;
+  height: 70px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.match-jersey {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 66px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.match-jersey-shirt {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px 8px 4px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--nc-shadow-sm);
+  font-size: 18px;
+  color: var(--color-bg);
+}
+
+.match-jersey-name {
+  font-size: 11px;
+  color: #fff;
+  text-align: center;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.match-jersey-badges {
+  display: flex;
+  gap: 4px;
+}
+
+.match-jersey-badge {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 9.5px;
+  color: #fff;
+}
+
+.match-jersey-badge-warn {
+  color: var(--color-accent-2-300);
+}
+
 .match-list {
   display: flex;
   flex-direction: column;
