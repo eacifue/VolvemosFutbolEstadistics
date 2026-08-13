@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Match } from '../types';
-import { matchScore, matchEntries, TEAM_WHITE } from '../utils/teamStats';
+import { matchScore, matchEntries, TEAM_WHITE, TEAM_BLACK } from '../utils/teamStats';
 
 const formatDate = (iso: string): string => {
   try {
@@ -52,28 +52,34 @@ const PartidosTab: React.FC<Props> = ({ matches, loading }) => {
           </div>
         </div>
 
-        <div>
-          <div className="section-label">Estadísticas del partido</div>
-          <div className="entry-list">
-            {entries.map((entry) => (
-              <div key={entry.playerId} className="entry-row">
-                <div className="entry-player">
-                  <span className={`tag ${entry.teamId === TEAM_WHITE ? 'tag-neutral' : 'tag-accent-2'}`}>
-                    {entry.teamId === TEAM_WHITE ? 'Blanco' : 'Negro'}
-                  </span>
-                  {entry.playerName}
-                </div>
-                <div className="entry-stat">
-                  <i className="ph-fill ph-soccer-ball" /> {entry.goals}
-                </div>
-                <div className="entry-stat">
-                  <i className="ph ph-shoe" /> {entry.assists}
-                </div>
-                <div className="entry-owngoal">{entry.ownGoals ? `AG ${entry.ownGoals}` : ''}</div>
+        {[
+          { label: 'Equipo Blanco', teamId: TEAM_WHITE, tagClass: 'tag-neutral' },
+          { label: 'Equipo Negro', teamId: TEAM_BLACK, tagClass: 'tag-accent-2' },
+        ].map((group) => {
+          const groupEntries = entries.filter((entry) => entry.teamId === group.teamId);
+          if (groupEntries.length === 0) return null;
+          return (
+            <div key={group.teamId}>
+              <div className="section-label">
+                <span className={`tag ${group.tagClass}`}>{group.label}</span>
               </div>
-            ))}
-          </div>
-        </div>
+              <div className="entry-list">
+                {groupEntries.map((entry) => (
+                  <div key={entry.playerId} className="entry-row">
+                    <div className="entry-player">{entry.playerName}</div>
+                    <div className="entry-stat">
+                      <i className="ph-fill ph-soccer-ball" /> {entry.goals}
+                    </div>
+                    <div className="entry-stat">
+                      <i className="ph ph-target" /> {entry.assists}
+                    </div>
+                    <div className="entry-owngoal">{entry.ownGoals ? `AG ${entry.ownGoals}` : ''}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   }

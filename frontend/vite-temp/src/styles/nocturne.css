@@ -414,6 +414,26 @@ table {
 }
 
 /* ===================== Jugadores tab ===================== */
+.player-search-wrap {
+  position: relative;
+  margin-bottom: var(--nc-space-4);
+}
+
+.player-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-neutral-500);
+  font-size: 15px;
+  pointer-events: none;
+}
+
+.player-search-input {
+  width: 100%;
+  padding-left: 34px;
+}
+
 .player-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -456,7 +476,7 @@ table {
 
 .player-card-stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--nc-space-2);
   width: 100%;
   margin-top: var(--nc-space-1);
@@ -490,6 +510,21 @@ table {
 .recent-match-score {
   font-size: 19px;
   font-weight: 500;
+}
+
+.recent-match-winner {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-accent-300);
+  margin-bottom: var(--nc-space-2);
+}
+
+.recent-match-winner-white {
+  color: var(--color-neutral-100);
+}
+
+.recent-match-winner-black {
+  color: var(--color-accent-2-300);
 }
 
 .recent-events {

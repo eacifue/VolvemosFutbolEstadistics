@@ -1,5 +1,6 @@
 import React from 'react';
-import type { DashboardDto, TopPlayerDto } from '../types';
+import type { DashboardDto, RecentMatchDto, TopPlayerDto } from '../types';
+import { TEAM_WHITE } from '../utils/teamStats';
 
 interface Props {
   dashboard: DashboardDto | null;
@@ -12,6 +13,17 @@ const formatDate = (iso: string): string => {
   } catch {
     return iso;
   }
+};
+
+const winningTeamId = (m: RecentMatchDto): number | null => {
+  if (m.winner === 'Draw') return null;
+  return m.winner === 'Home' ? m.homeTeamId : m.awayTeamId;
+};
+
+const winnerLabel = (m: RecentMatchDto): string => {
+  const teamId = winningTeamId(m);
+  if (teamId === null) return 'Empate';
+  return teamId === TEAM_WHITE ? 'Ganó Blanco' : 'Ganó Negro';
 };
 
 type BoardField = 'goals' | 'assists' | 'ownGoals' | 'wins' | 'losses';
@@ -46,6 +58,13 @@ const TopsTab: React.FC<Props> = ({ dashboard, loading }) => {
                 <span className="recent-match-score">
                   {m.homeGoals} — {m.awayGoals}
                 </span>
+              </div>
+              <div
+                className={`recent-match-winner ${
+                  winningTeamId(m) === null ? '' : winningTeamId(m) === TEAM_WHITE ? 'recent-match-winner-white' : 'recent-match-winner-black'
+                }`}
+              >
+                {winnerLabel(m)}
               </div>
               <div className="recent-events">
                 {m.events.slice(0, 4).map((ev) => (

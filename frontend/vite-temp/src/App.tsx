@@ -10,14 +10,14 @@ import AdminTab from './tabs/AdminTab';
 type TabKey = 'matches' | 'players' | 'tops' | 'admin';
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
+  { key: 'tops', label: 'Tops', icon: 'ph-fill ph-trophy' },
   { key: 'matches', label: 'Partidos', icon: 'ph-fill ph-soccer-ball' },
   { key: 'players', label: 'Jugadores', icon: 'ph ph-users-three' },
-  { key: 'tops', label: 'Tops', icon: 'ph-fill ph-trophy' },
   { key: 'admin', label: 'Admin', icon: 'ph ph-gear-six' },
 ];
 
 const App: React.FC = () => {
-  const [tab, setTab] = useState<TabKey>('matches');
+  const [tab, setTab] = useState<TabKey>('tops');
   const { dashboard, players, matches, loading } = useAppData();
 
   const whiteWins = dashboard?.teamComparison.find((t) => t.id === 1)?.wins ?? 0;
