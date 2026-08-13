@@ -10,12 +10,12 @@
 }
 
 .page-feedback-error {
-  color: #991b1b;
+  color: #f87171;
 }
 
 .players-header {
-  background: linear-gradient(135deg, var(--color-primary), #0b3528);
-  color: #f8fafc;
+  background: linear-gradient(135deg, var(--color-neutral-900), var(--color-surface));
+  color: var(--color-text);
   position: relative;
   overflow: hidden;
   padding: var(--space-12) 0 var(--space-8);
@@ -35,7 +35,7 @@
 }
 
 .players-header p {
-  color: #d1fae5;
+  color: var(--color-text-muted);
   margin-top: var(--space-2);
 }
 
@@ -47,10 +47,10 @@
 }
 
 .manage-chip {
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(233, 233, 237, 0.08);
+  border: 1px solid var(--color-divider);
   border-radius: var(--radius-full);
-  color: #e5fff3;
+  color: var(--color-text);
   font-size: var(--font-size-xs);
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -58,9 +58,9 @@
 }
 
 .manage-chip-active {
-  background: rgba(212, 175, 55, 0.28);
-  border-color: rgba(245, 209, 95, 0.8);
-  color: #fff7df;
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-300);
 }
 
 .manage-layout-section {
@@ -107,10 +107,10 @@
 }
 
 .form-error {
-  background: #fee2e2;
-  border: 1px solid #fecaca;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.4);
   border-radius: var(--radius-sm);
-  color: #991b1b;
+  color: #f87171;
   font-size: var(--font-size-sm);
   margin-bottom: var(--space-3);
   padding: var(--space-2) var(--space-3);
@@ -134,7 +134,7 @@
 
 .search-bar {
   align-items: center;
-  background: #f8faf8;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   display: flex;
@@ -155,14 +155,14 @@
 }
 
 .search-input:focus-visible {
-  outline: 3px solid rgba(11, 61, 46, 0.22);
+  outline: 3px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
   outline-offset: 2px;
 }
 
 .search-count {
-  background: #e9f7ef;
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
   border-radius: var(--radius-full);
-  color: #14532d;
+  color: var(--color-accent-300);
   font-size: var(--font-size-xs);
   font-weight: 800;
   padding: var(--space-1) var(--space-3);
@@ -190,7 +190,7 @@
 }
 
 .players-table td {
-  border-bottom: 1px solid #edf2ee;
+  border-bottom: 1px solid var(--color-divider);
   color: var(--color-text);
   max-width: 160px;
   overflow: hidden;
@@ -200,26 +200,26 @@
 }
 
 .players-table tbody tr.row-even {
-  background: #ffffff;
+  background: transparent;
 }
 
 .players-table tbody tr.row-odd {
-  background: #f8faf8;
+  background: rgba(233, 233, 237, 0.04);
 }
 
 .players-table tbody tr:hover {
-  background: #eef6ef;
+  background: rgba(233, 233, 237, 0.08);
 }
 
 .players-table tbody tr:focus-within {
-  background: #e2f3e6;
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
 }
 
 .player-id {
   align-items: center;
-  background: var(--color-primary);
+  background: var(--color-accent);
   border-radius: var(--radius-full);
-  color: #ffffff;
+  color: var(--color-bg);
   display: inline-flex;
   font-size: var(--font-size-xs);
   font-weight: 800;
@@ -229,9 +229,9 @@
 }
 
 .position-badge {
-  background: #dcfce7;
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
   border-radius: var(--radius-full);
-  color: #166534;
+  color: var(--color-accent-300);
   display: inline-block;
   font-size: var(--font-size-xs);
   font-weight: 700;
@@ -265,29 +265,29 @@
 }
 
 .btn-edit {
-  background: #fef3c7;
-  border: 1px solid #fcd34d;
-  color: #78350f;
+  background: transparent;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent-300);
 }
 
 .btn-edit:hover {
-  background: #fcd34d;
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
 }
 
 .btn-edit:focus-visible,
 .btn-delete:focus-visible {
-  outline: 3px solid rgba(11, 61, 46, 0.24);
+  outline: 3px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
   outline-offset: 2px;
 }
 
 .btn-delete {
-  background: #fee2e2;
-  border: 1px solid #fecaca;
-  color: #991b1b;
+  background: transparent;
+  border: 1px solid #f87171;
+  color: #f87171;
 }
 
 .btn-delete:hover {
-  background: #fecaca;
+  background: rgba(248, 113, 113, 0.12);
 }
 
 .icon-only {

@@ -141,4 +141,10 @@ coverage/
 # ===========================
 .claude/settings.local.json
 .impeccable/
-.agents/
+
+# .agents/skills/impeccable is kept: .claude/skills/impeccable is a tracked
+# symlink into it, so ignoring it would leave that skill broken for clones.
+.agents/skills/gitignore-generator/
+.agents/skills/react-expert/
+.agents/skills/refactor/
+.agents/skills/ui-ux-pro-max/

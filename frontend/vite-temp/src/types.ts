@@ -139,7 +139,7 @@ export interface MatchEvent {
     id: number;
     matchId: number;
     playerId: number;
-    player: string;
+    player: Player;
     eventTypeId: number;
     eventType?: EventType;
     teamId: number;

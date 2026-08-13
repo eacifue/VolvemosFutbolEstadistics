@@ -26,10 +26,10 @@
 }
 
 .manager-stat-pill {
-  background: #ecfdf3;
-  border: 1px solid #c7f0d7;
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  border: 1px solid var(--color-divider);
   border-radius: var(--radius-full);
-  color: #14532d;
+  color: var(--color-accent-300);
   font-size: var(--font-size-xs);
   font-weight: 800;
   letter-spacing: 0.03em;
@@ -123,7 +123,7 @@
 
 .matches-list li.selected {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.18);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 .match-info {
@@ -146,7 +146,7 @@
 
 .match-info:focus-visible {
   border-radius: var(--radius-sm);
-  outline: 3px solid rgba(11, 61, 46, 0.28);
+  outline: 3px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
   outline-offset: 2px;
 }
 
@@ -217,11 +217,11 @@
 }
 
 .team-roster.team-white h4 {
-  color: #14532d;
+  color: var(--color-neutral-100);
 }
 
 .team-roster.team-black h4 {
-  color: #111827;
+  color: var(--color-accent-2-300);
 }
 
 .player-list,
@@ -236,7 +236,7 @@
 .player-item,
 .event-item {
   align-items: center;
-  background: #f8faf8;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   display: flex;
@@ -249,8 +249,8 @@
 
 .player-item:hover,
 .event-item:hover {
-  border-color: #c5d5cc;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+  border-color: var(--color-accent);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
   transform: translateY(-1px);
 }
 
@@ -263,9 +263,9 @@
 
 .player-mini-avatar {
   align-items: center;
-  background: var(--color-primary);
+  background: var(--color-accent);
   border-radius: var(--radius-full);
-  color: #ffffff;
+  color: var(--color-bg);
   display: inline-flex;
   font-size: var(--font-size-xs);
   font-weight: 800;
@@ -339,16 +339,16 @@
 }
 
 .event-item-own-goal {
-  background: #fff1f2;
-  border-color: #fecdd3;
+  background: rgba(248, 113, 113, 0.1);
+  border-color: rgba(248, 113, 113, 0.35);
 }
 
 .event-icon-own-goal {
-  color: #dc2626;
+  color: #f87171;
 }
 
 .empty-inline {
-  border: 1px dashed #cad4cd;
+  border: 1px dashed var(--color-divider);
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
   padding: var(--space-4);

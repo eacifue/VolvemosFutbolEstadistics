@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import '../styles/ManagePlayers.css';
 import type { Player, Position } from '../types';
 import { getPlayers, createPlayer, updatePlayer, deletePlayer, getPositions } from '../services/api';
+import { emitStatsRefresh } from '../services/refreshBus';
 import Notification from '../components/Notification';
 import { getFriendlyErrorMessage } from '../utils/errorMessages';
 
@@ -96,6 +97,7 @@ const ManagePlayers: React.FC = () => {
 
       setFormData(INITIAL_FORM);
       loadData();
+      emitStatsRefresh();
     } catch (err) {
       console.error('Error saving player:', err);
       setFormError('Ocurrio un error al guardar el jugador.');
@@ -119,6 +121,7 @@ const ManagePlayers: React.FC = () => {
       await deletePlayer(deleteCandidate.id);
       showNotification('success', `${firstName} ${lastName} fue eliminado correctamente.`);
       loadData();
+      emitStatsRefresh();
     } catch (err) {
       console.error('Error deleting player:', err);
       showNotification('error', `No se pudo eliminar a ${firstName} ${lastName}. Intenta nuevamente.`);
