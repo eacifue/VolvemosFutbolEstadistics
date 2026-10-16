@@ -71,7 +71,7 @@ const AdminTab: React.FC = () => {
 
   return (
     <div className="tab-panel">
-      <div>
+      <div className="admin-workspace">
         <div className="seg admin-seg">
           <div
             className={`seg-opt ${adminView === 'player' ? 'active' : ''}`}

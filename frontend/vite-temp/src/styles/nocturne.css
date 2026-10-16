@@ -706,7 +706,46 @@ table {
 }
 
 /* ===================== Admin tab ===================== */
+/* Admin pages (ManagePlayers/MatchManager) are desktop workspaces whose
+   breakpoints follow the viewport, so the shell must widen with it instead
+   of staying phone-width on a PC. */
+.app-shell-wide {
+  max-width: 1280px;
+}
+
+.admin-workspace {
+  min-width: 0;
+}
+
+/* The pages bring their own .container padding/min-height for full-page
+   use; inside the tab shell that doubles the gutter. */
+.admin-workspace .container {
+  padding: 0;
+  width: 100%;
+}
+
+.admin-workspace .manage-players-page,
+.admin-workspace .match-manager {
+  min-height: 0;
+}
+
+.admin-workspace .match-manager {
+  padding: 0;
+}
+
+.admin-workspace .players-header {
+  border-radius: var(--nc-radius-lg);
+  padding: var(--nc-space-6) var(--nc-space-5);
+}
+
+.admin-workspace .manage-layout-section {
+  padding: var(--nc-space-5) 0 0;
+}
+
 .admin-login-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
   padding: var(--nc-space-5);
   display: flex;
   flex-direction: column;
@@ -723,7 +762,9 @@ table {
 }
 
 .admin-seg {
+  display: flex;
   width: 100%;
+  max-width: 420px;
   margin-bottom: var(--nc-space-5);
 }
 .admin-seg .seg-opt {

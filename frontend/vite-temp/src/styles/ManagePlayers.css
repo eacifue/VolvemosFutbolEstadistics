@@ -70,7 +70,9 @@
 .manage-layout {
   display: grid;
   gap: var(--space-6);
-  grid-template-columns: 40% 60%;
+  /* fr instead of 40%/60% so the gap doesn't push the grid past 100% */
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: start;
 }
 
 .manage-form-panel,
@@ -175,7 +177,7 @@
 
 .players-table {
   border-collapse: collapse;
-  min-width: 620px;
+  min-width: 520px;
   width: 100%;
 }
 

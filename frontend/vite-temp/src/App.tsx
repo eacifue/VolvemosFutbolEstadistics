@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const blackWins = dashboard?.teamComparison.find((t) => t.id === 2)?.wins ?? 0;
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${tab === 'admin' ? 'app-shell-wide' : ''}`}>
       <header className="app-header">
         <div className="app-header-brand">
           <div className="app-header-logo">

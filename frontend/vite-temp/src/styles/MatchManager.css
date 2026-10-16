@@ -53,7 +53,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  padding: var(--space-5);
+  padding: var(--space-6);
 }
 
 .match-creator h2,
@@ -68,9 +68,23 @@
 }
 
 .compact-form-grid {
+  align-items: end;
   display: grid;
   gap: var(--space-3);
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.compact-form-grid .button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.compact-form-grid .button-group .btn,
+.compact-form-grid > .btn {
+  flex: 1 1 auto;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
 }
 
 .compact-form-grid > div {
@@ -88,13 +102,13 @@
 .manager-layout {
   display: grid;
   gap: var(--space-6);
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
 }
 
 .manager-sidebar {
   align-self: start;
   position: sticky;
-  top: 84px;
+  top: var(--space-4);
 }
 
 .manager-sidebar,
