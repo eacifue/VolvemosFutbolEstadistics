@@ -13,6 +13,7 @@ public static class PlayerMapper
         Id = player.Id,
         FirstName = player.FirstName,
         LastName = player.LastName,
+        Nickname = player.Nickname,
         PositionId = player.PositionId,
         Position = player.Position != null ? new PositionDto
         {

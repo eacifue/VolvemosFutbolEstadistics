@@ -14,6 +14,7 @@ public static class MatchMapper
         MatchDate = match.MatchDate,
         HomeTeamId = match.HomeTeamId,
         AwayTeamId = match.AwayTeamId,
+        Venue = match.Venue,
         HomeTeam = match.HomeTeam != null ? TeamMapper.ToDto(match.HomeTeam) : null,
         AwayTeam = match.AwayTeam != null ? TeamMapper.ToDto(match.AwayTeam) : null,
         MatchPlayers = (match.MatchPlayers ?? []).Select(mp => new MatchPlayerDto
@@ -23,6 +24,8 @@ public static class MatchMapper
             PlayerId = mp.PlayerId,
             Player = PlayerMapper.ToDto(mp.Player),
             TeamId = mp.TeamId,   // ← string/int ID, no la entidad
+            PitchX = mp.PitchX,
+            PitchY = mp.PitchY,
             CreatedAt = mp.CreatedAt
         }).ToList(),
         Events = (match.Events ?? []).Select(e => new MatchEventDto

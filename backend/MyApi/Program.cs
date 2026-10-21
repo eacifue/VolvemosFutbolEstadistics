@@ -153,12 +153,13 @@ using (var scope = app.Services.CreateScope())
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await context.Database.EnsureCreatedAsync();
         await SchemaMigrator.EnsureOwnGoalEventTypeAsync(context);
+        await SchemaMigrator.EnsureRedesignColumnsAsync(context);
         await AuthSeeder.EnsureAdminUserAsync(context);
         logger.LogInformation("Auth seeder executed successfully.");
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Error while executing auth seeder.");
+        logger.LogError(ex, "Error while preparing the database (schema migrator / auth seeder).");
     }
 }
 app.Run();

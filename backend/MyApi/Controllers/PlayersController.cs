@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyApi.DTOs;
+using MyApi.Mappers;
 using MyApi.Models;
 using MyApi.Services;
 
@@ -66,6 +67,7 @@ namespace MyApi.Controllers
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
+                Nickname = string.IsNullOrWhiteSpace(dto.Nickname) ? null : dto.Nickname.Trim(),
                 PositionId = dto.IdPosition
             };
 
@@ -84,6 +86,7 @@ namespace MyApi.Controllers
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
+                Nickname = string.IsNullOrWhiteSpace(dto.Nickname) ? null : dto.Nickname.Trim(),
                 PositionId = dto.IdPosition
             };
 
@@ -131,32 +134,6 @@ namespace MyApi.Controllers
             return NoContent();
         }
 
-        private static PlayerDto MapToDto(Player player)
-        {
-            return new PlayerDto
-            {
-                Id = player.Id,
-                FirstName = player.FirstName,
-                LastName = player.LastName,
-                PositionId = player.PositionId,
-                Position = player.Position != null ? new PositionDto
-                {
-                    Id = player.Position.Id,
-                    Name = player.Position.Name
-                } : null,
-                Goals = player.Goals,
-                Assists = player.Assists,
-                Matches = player.Matches,
-                OwnGoals = player.OwnGoals,
-                GoalsPerGame = player.GoalsPerGame,
-                Wins = player.Wins,
-                Losses = player.Losses,
-                Draws = player.Draws,
-                GoalStreak = player.GoalStreak,
-                NoGoalStreak = player.NoGoalStreak,
-                CreatedAt = player.CreatedAt,
-                UpdatedAt = player.UpdatedAt
-            };
-        }
+        private static PlayerDto MapToDto(Player player) => PlayerMapper.ToDto(player);
     }
 }

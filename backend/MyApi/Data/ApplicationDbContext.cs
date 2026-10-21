@@ -72,6 +72,22 @@ namespace MyApi.Data
                 .WithMany()
                 .HasForeignKey(mp => mp.PlayerId);
 
+            modelBuilder.Entity<Match>()
+                .Property(m => m.Venue)
+                .HasMaxLength(120);
+
+            modelBuilder.Entity<Player>()
+                .Property(p => p.Nickname)
+                .HasMaxLength(40);
+
+            modelBuilder.Entity<MatchPlayer>()
+                .Property(mp => mp.PitchX)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<MatchPlayer>()
+                .Property(mp => mp.PitchY)
+                .HasPrecision(5, 2);
+
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)
                 .IsUnique();

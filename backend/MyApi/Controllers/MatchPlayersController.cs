@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MyApi.DTOs;
 using MyApi.Models;
 using MyApi.Services;
 
@@ -44,6 +45,34 @@ namespace MyApi.Controllers
                 return NotFound();
 
             return NoContent();
+        }
+
+        /// <summary>
+        /// Save the shared pitch positions of a match (seen by everyone)
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{matchId}/positions")]
+        public async Task<ActionResult<IEnumerable<MatchPlayer>>> UpdatePitchPositions(int matchId, List<PitchPositionDto> positions)
+        {
+            var updated = await _matchPlayerService.UpdatePitchPositionsAsync(matchId, positions);
+            if (updated == null)
+                return BadRequest("Match has no lineup or a player is not in this match");
+
+            return Ok(updated);
+        }
+
+        /// <summary>
+        /// Move a player to the other team of the same match
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("{matchId}/{playerId}")]
+        public async Task<ActionResult<MatchPlayer>> ChangeTeam(int matchId, int playerId, ChangeTeamDto dto)
+        {
+            var updated = await _matchPlayerService.ChangeTeamAsync(matchId, playerId, dto.TeamId);
+            if (updated == null)
+                return NotFound();
+
+            return Ok(updated);
         }
 
         /// <summary>

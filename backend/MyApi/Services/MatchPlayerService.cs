@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using MyApi.Data;
+using MyApi.DTOs;
 using MyApi.Models;
 
 namespace MyApi.Services
@@ -29,9 +30,9 @@ namespace MyApi.Services
             // Ensure team value is valid (1 or 2)
             if (teamId != 1 && teamId != 2) return null;
 
-            // Check if player is already in this match
+            // Un jugador juega con un solo equipo por partido (para cambiarlo de lado está ChangeTeamAsync)
             var existing = await _context.MatchPlayers
-                .FirstOrDefaultAsync(mp => mp.MatchId == matchId && mp.PlayerId == playerId && mp.TeamId == teamId);
+                .FirstOrDefaultAsync(mp => mp.MatchId == matchId && mp.PlayerId == playerId);
             if (existing != null) return null;
 
             var matchPlayer = new MatchPlayer
@@ -55,6 +56,50 @@ namespace MyApi.Services
             _context.MatchPlayers.Remove(matchPlayer);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        // Guarda en bloque las posiciones de la cancha que ven todos. Devuelve null si algún jugador no está en el partido.
+        public async Task<IEnumerable<MatchPlayer>?> UpdatePitchPositionsAsync(int matchId, IReadOnlyCollection<PitchPositionDto> positions)
+        {
+            var lineup = await _context.MatchPlayers
+                .Where(mp => mp.MatchId == matchId)
+                .ToListAsync();
+            if (lineup.Count == 0) return null;
+
+            var byPlayer = lineup.ToDictionary(mp => mp.PlayerId);
+            if (positions.Any(p => !byPlayer.ContainsKey(p.PlayerId))) return null;
+
+            foreach (var position in positions)
+            {
+                var matchPlayer = byPlayer[position.PlayerId];
+                var reset = position.X == null || position.Y == null;
+                matchPlayer.PitchX = reset ? null : decimal.Round(position.X!.Value, 2);
+                matchPlayer.PitchY = reset ? null : decimal.Round(position.Y!.Value, 2);
+            }
+
+            await _context.SaveChangesAsync();
+            return lineup;
+        }
+
+        // Pasa al jugador al otro equipo sin borrarlo del partido; su posición vuelve a la automática
+        // porque cada equipo ocupa su propia mitad de la cancha.
+        public async Task<MatchPlayer?> ChangeTeamAsync(int matchId, int playerId, int teamId)
+        {
+            if (teamId != 1 && teamId != 2) return null;
+
+            var matchPlayer = await _context.MatchPlayers
+                .FirstOrDefaultAsync(mp => mp.MatchId == matchId && mp.PlayerId == playerId);
+            if (matchPlayer == null) return null;
+
+            if (matchPlayer.TeamId != teamId)
+            {
+                matchPlayer.TeamId = teamId;
+                matchPlayer.PitchX = null;
+                matchPlayer.PitchY = null;
+                await _context.SaveChangesAsync();
+            }
+
+            return matchPlayer;
         }
 
         public async Task<IEnumerable<MatchPlayer>> GetMatchPlayersAsync(int matchId)

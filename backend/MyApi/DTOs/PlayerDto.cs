@@ -5,6 +5,7 @@ namespace MyApi.DTOs
         public int Id { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+        public string? Nickname { get; set; }
         public int? PositionId { get; set; }
         public PositionDto? Position { get; set; }
         public int Goals { get; set; }

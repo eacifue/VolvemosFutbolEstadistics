@@ -8,6 +8,7 @@ namespace MyApi.Services
     public interface IMatchService
     {
         Task<IEnumerable<Match>> GetAllMatchesAsync();
+        Task<IEnumerable<string>> GetVenuesAsync();
         Task<Match> GetMatchByIdAsync(int id);
         Task<Match> CreateMatchAsync(CreateMatchDto dto);
         Task<Match> UpdateMatchAsync(int id, UpdateMatchDto dto);

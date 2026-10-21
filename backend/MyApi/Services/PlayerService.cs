@@ -114,6 +114,7 @@ namespace MyApi.Services
             // Only update editable fields; preserve Goals/Assists/Matches (managed by match events)
             existingPlayer.FirstName = player.FirstName;
             existingPlayer.LastName = player.LastName;
+            existingPlayer.Nickname = player.Nickname;
             existingPlayer.PositionId = player.PositionId;
             existingPlayer.UpdatedAt = DateTime.UtcNow;
 

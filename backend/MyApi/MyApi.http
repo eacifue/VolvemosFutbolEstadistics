@@ -4,3 +4,45 @@ GET {{MyApi_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+### --- Rediseño fase 1 y 2 ---
+# Token de admin: POST {{MyApi_HostAddress}}/api/auth/login y pega el token aquí
+@token = PEGAR_TOKEN
+
+### Canchas ya usadas (autocompletar)
+GET {{MyApi_HostAddress}}/api/matches/venues
+
+### Crear partido con cancha
+POST {{MyApi_HostAddress}}/api/matches
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "matchDate": "2026-10-29T20:00:00", "homeTeamId": 1, "awayTeamId": 2, "venue": "Cancha La Paz, Envigado" }
+
+### Cambiar (o borrar con "") la cancha
+PUT {{MyApi_HostAddress}}/api/matches/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "venue": "" }
+
+### Apodo del jugador
+PUT {{MyApi_HostAddress}}/api/players/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "firstName": "German", "lastName": "Piña", "nickname": "El Profe", "idPosition": 4 }
+
+### Posiciones compartidas (x/y en %; null = ubicación automática)
+PUT {{MyApi_HostAddress}}/api/matchplayers/2/positions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+[ { "playerId": 4, "x": 30, "y": 40 }, { "playerId": 12, "x": null, "y": null } ]
+
+### Pasar a un jugador al otro equipo (vuelve a ubicación automática)
+PATCH {{MyApi_HostAddress}}/api/matchplayers/2/4
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "teamId": 2 }

@@ -12,6 +12,9 @@ public class Player
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
 
+    // Apodo opcional: sale en la cancha y en las cartas.
+    public string? Nickname { get; set; }
+
     [Column("IdPosition")]
     public int? PositionId { get; set; }
     public Position? Position { get; set; }

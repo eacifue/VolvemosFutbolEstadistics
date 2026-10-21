@@ -22,6 +22,12 @@ public class MatchesController(IMatchService matchService) : ControllerBase
         return Ok(matches.Select(MatchMapper.ToDto));
     }
 
+    [HttpGet("venues")]
+    public async Task<ActionResult<IEnumerable<string>>> GetVenues()
+    {
+        return Ok(await matchService.GetVenuesAsync());
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<MatchDto>> GetMatch(int id)
     {

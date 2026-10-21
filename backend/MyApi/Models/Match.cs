@@ -10,6 +10,9 @@ namespace MyApi.Models
         public DateTime MatchDate { get; set; }
         public int? HomeTeamId { get; set; }
         public int? AwayTeamId { get; set; }
+
+        // Cancha donde se juega (texto libre, p. ej. "Cancha La Paz, Envigado").
+        public string? Venue { get; set; }
         
         // Relationships
         public Team? HomeTeam { get; set; }

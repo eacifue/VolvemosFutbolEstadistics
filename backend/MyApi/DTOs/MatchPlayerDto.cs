@@ -7,6 +7,8 @@ namespace MyApi.DTOs
         public int PlayerId { get; set; }
         public PlayerDto Player { get; set; } = null!;
         public int TeamId { get; set; } // 1 = home, 2 = away
+        public decimal? PitchX { get; set; }
+        public decimal? PitchY { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

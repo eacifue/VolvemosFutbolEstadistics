@@ -15,6 +15,10 @@ namespace MyApi.Models
         // Team in match: 1=Home, 2=Away (or whatever convention)
         public int TeamId { get; set; }
 
+        // Posición en la cancha compartida, en % del ancho/alto (0–100). Null = ubicación automática por posición.
+        public decimal? PitchX { get; set; }
+        public decimal? PitchY { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

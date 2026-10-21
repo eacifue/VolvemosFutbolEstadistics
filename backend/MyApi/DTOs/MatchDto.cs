@@ -6,6 +6,7 @@ namespace MyApi.DTOs
         public DateTime MatchDate { get; set; }
         public int? HomeTeamId { get; set; }
         public int? AwayTeamId { get; set; }
+        public string? Venue { get; set; }
         public TeamDto? HomeTeam { get; set; }
         public TeamDto? AwayTeam { get; set; }
         public List<MatchPlayerDto> MatchPlayers { get; set; } = new List<MatchPlayerDto>();

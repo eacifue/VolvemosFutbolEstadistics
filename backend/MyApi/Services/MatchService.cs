@@ -31,6 +31,21 @@ namespace MyApi.Services
                 .ToListAsync();
         }
 
+        // Canchas ya usadas, la más reciente primero (para autocompletar al armar el partido).
+        public async Task<IEnumerable<string>> GetVenuesAsync()
+        {
+            var venues = await _context.Matches
+                .Where(m => m.Venue != null && m.Venue != "")
+                .OrderByDescending(m => m.MatchDate)
+                .Select(m => m.Venue!)
+                .ToListAsync();
+
+            return venues.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        private static string? CleanVenue(string? venue) =>
+            string.IsNullOrWhiteSpace(venue) ? null : venue.Trim();
+
         public async Task<Match> GetMatchByIdAsync(int id)
         {
             return await _context.Matches
@@ -50,7 +65,8 @@ namespace MyApi.Services
             {
                 MatchDate = dto.MatchDate,
                 HomeTeamId = dto.HomeTeamId,
-                AwayTeamId = dto.AwayTeamId
+                AwayTeamId = dto.AwayTeamId,
+                Venue = CleanVenue(dto.Venue)
             };
 
             _context.Matches.Add(newMatch);
@@ -67,6 +83,7 @@ namespace MyApi.Services
             if (dto.MatchDate.HasValue) existingMatch.MatchDate = dto.MatchDate.Value;
             if (dto.HomeTeamId.HasValue) existingMatch.HomeTeamId = dto.HomeTeamId.Value;
             if (dto.AwayTeamId.HasValue) existingMatch.AwayTeamId = dto.AwayTeamId.Value;
+            if (dto.Venue != null) existingMatch.Venue = CleanVenue(dto.Venue);
             existingMatch.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
