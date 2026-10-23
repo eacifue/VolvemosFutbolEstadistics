@@ -4,7 +4,7 @@ import { useAppData } from '../data/context';
 import { Shell } from '../components/Shell';
 import { DataTable, FilterChip, IconButton, LeaderboardRow, Podium, SectionHeader, ShareSheet, Skeleton, StateView, Tabs, type DataTableColumn } from '../components/vaf';
 import { seasonOf, shortDate } from '../lib/format';
-import { computePlayerStats, PREVENTED_HELP, RATING_HELP, type PlayerStats } from '../lib/stats';
+import { computePlayerStats, PREVENTED_HELP, RATING_HELP, WIN_PCT_MIN_PJ, type PlayerStats } from '../lib/stats';
 
 type Metric = 'g' | 'a' | 'wp' | 'rating' | 'og' | 'gk';
 const METRICS: { id: Metric; label: string; unit: string; overline: string }[] = [
@@ -41,7 +41,9 @@ export const Ranking: React.FC = () => {
 
   const keepers = metric === 'gk';
   const maxKeeperPj = Math.max(0, ...stats.filter((s) => s.isKeeper).map((s) => s.pj));
-  const minPj = keepers ? Math.max(keeperMinPj(maxKeeperPj), MIN_PJ[minIdx]) : MIN_PJ[minIdx];
+  // % de victorias tiene mínimo fijo: quien no llega a WIN_PCT_MIN_PJ partidos no entra en ese ranking.
+  const winPct = metric === 'wp';
+  const minPj = keepers ? Math.max(keeperMinPj(maxKeeperPj), MIN_PJ[minIdx]) : winPct ? WIN_PCT_MIN_PJ : MIN_PJ[minIdx];
   const rows: Row[] = useMemo(() => stats.filter((s) => s.pj >= minPj && (!keepers || s.isKeeper)).map((s) => ({
     id: s.id, name: s.info.name, short: s.info.short, team: s.team, pj: s.pj, g: s.g, a: s.a, ga: s.ga, gpj: s.gpj, w: s.w, d: s.d, l: s.l, wp: s.wp, og: s.og, rating: s.rating ?? 0,
     gk: s.gcpj, gc: s.gc, cs: s.cleanSheets, prevented: s.goalsPrevented, keeper: s.isKeeper,
@@ -109,7 +111,11 @@ export const Ranking: React.FC = () => {
         {!data.loading && !rows.length && keepers ? (
           <StateView kind="empty" title="Sin arqueros en la tabla" body={`Aparecen los porteros con al menos ${minPj} partidos en el periodo. Revisa que su posición sea Portero en Gestión.`} />
         ) : null}
-        {!data.loading && !rows.length && !keepers ? (
+        {!data.loading && !rows.length && winPct ? (
+          <StateView kind="empty" title={`Nadie llega a ${WIN_PCT_MIN_PJ} partidos`} body={`El % de victorias cuenta desde ${WIN_PCT_MIN_PJ} partidos jugados${period === 'temp' ? ` en ${season}` : ''}, para que un par de partidos ganados no lideren.`}
+            action={period === 'temp' ? 'Ver histórico' : undefined} onAction={() => setPeriod('hist')} />
+        ) : null}
+        {!data.loading && !rows.length && !keepers && !winPct ? (
           <StateView kind="empty" title={period === 'temp' ? `Sin partidos en ${season}` : 'Todavía sin ranking'} body={period === 'temp' ? 'La temporada arranca con el primer partido del semestre. Mira el histórico mientras tanto.' : 'Con el primer partido jugado aparece la tabla.'}
             action={period === 'temp' ? 'Ver histórico' : undefined} onAction={() => setPeriod('hist')} />
         ) : null}
@@ -122,7 +128,7 @@ export const Ranking: React.FC = () => {
               <section className="vf-block"><SectionHeader title="Muro de la vergüenza" overline="Autogoles" /><ol className="vf-lblist">{top('og', 3).map((r, i) => <LeaderboardRow key={r.id} rank={i + 1} name={r.name} team={r.team} value={r.og} unit="AG" onClick={() => navigate(`/jugadores/${r.id}`)} />)}</ol>{!top('og', 1).length ? <p className="vf-small vf-dim">Nadie la ha metido en su arco. Por ahora.</p> : null}</section>
             </div>}
             <div className={keepers ? undefined : 'vf-only-mobile'}>{podium.length ? <Podium entries={podium.map((r) => ({ id: r.id, name: r.name, team: r.team, value: fmtMetric(metric, r) as React.ReactNode }))} unit={metric === 'wp' ? '' : cur.unit} /> : <p className="vf-small vf-dim">Nadie suma {cur.label.toLowerCase()} todavía.</p>}</div>
-            <div className="vf-tabletools"><span className="vf-small vf-dim">Mínimo {minPj} partido{minPj > 1 ? 's' : ''} · {rows.length} {keepers ? (rows.length === 1 ? 'arquero' : 'arqueros') : 'jugadores'}</span>{minChip}</div>
+            <div className="vf-tabletools"><span className="vf-small vf-dim">Mínimo {minPj} partido{minPj > 1 ? 's' : ''} · {rows.length} {keepers ? (rows.length === 1 ? 'arquero' : 'arqueros') : 'jugadores'}</span>{winPct ? null : minChip}</div>
             <DataTable caption={keepers ? 'Ranking de arqueros' : 'Ranking de jugadores'} columns={columns} rows={rows} sortKey={metric} sortDir={keepers ? 'asc' : 'desc'} maxHeight={520} />
           </>
         ) : null}

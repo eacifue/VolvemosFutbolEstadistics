@@ -226,6 +226,8 @@ export interface PlayerStats {
 }
 
 export const WALL_MAX_CONCEDED = 2;
+// % de victorias solo cuenta desde 10 partidos: con 1 partido ganado sería 100 % y no es justo con quien lleva 30.
+export const WIN_PCT_MIN_PJ = 10;
 export const PREVENTED_HELP = 'Goles evitados: cuántos goles menos recibió su equipo con él que el promedio del grupo por partido (GC/PJ medio − su GC/PJ, por partidos jugados).';
 
 export const computePlayerStats = (infos: PlayerInfo[], views: MatchView[]): Map<number, PlayerStats> => {

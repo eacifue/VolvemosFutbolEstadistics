@@ -9,7 +9,7 @@ import {
 } from '../components/vaf';
 import { dateTime, relativeDay, shortDate, time24 } from '../lib/format';
 import { useInstallPrompt } from '../lib/install';
-import { insightsOf, scorersOf } from '../lib/stats';
+import { insightsOf, scorersOf, WIN_PCT_MIN_PJ } from '../lib/stats';
 
 export const Inicio: React.FC = () => {
   const data = useAppData();
@@ -26,12 +26,9 @@ export const Inicio: React.FC = () => {
 
   const leaders = useMemo(() => {
     const withPj = stats.filter((s) => s.pj > 0);
-    // "Ganador" exige haber jugado al menos el 30 % de lo que jugó el que más tiene (mínimo 3),
-    // para que no gane alguien con 100 % en dos o tres partidos.
-    const maxPj = Math.max(0, ...withPj.map((s) => s.pj));
-    const minPj = Math.min(maxPj, Math.max(3, Math.ceil(maxPj * 0.3)));
+    // "Ganador" sigue la misma regla que el ranking de % de victorias: mínimo WIN_PCT_MIN_PJ partidos.
     const top = <K extends 'g' | 'a' | 'wp'>(k: K, pool = withPj) => [...pool].sort((a, b) => b[k] - a[k] || b.pj - a.pj)[0];
-    return { scorer: top('g'), assist: top('a'), winner: top('wp', withPj.filter((s) => s.pj >= minPj)) };
+    return { scorer: top('g'), assist: top('a'), winner: top('wp', withPj.filter((s) => s.pj >= WIN_PCT_MIN_PJ)) };
   }, [stats]);
 
   const insights = useMemo(() => insightsOf(stats, data.views, data.nameOf, data.shortOf), [stats, data.views, data.nameOf, data.shortOf]);
