@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app_mobile/theme/vaf_tokens.dart';
 import '../models/player.dart';
 
 class PlayerCard extends StatelessWidget {
@@ -64,11 +65,7 @@ class _StatItem extends StatelessWidget {
       children: [
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFFD4AF37),
-          ),
+          style: VafType.statMd.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer),
         ),
         Text(
           label,

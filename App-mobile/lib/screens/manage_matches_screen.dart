@@ -60,7 +60,7 @@ class _ManageMatchesScreenState extends State<ManageMatchesScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateMatchDialog,
-        backgroundColor: const Color(0xFF0B3D2E),
+        tooltip: 'Nuevo partido',
         child: const Icon(Icons.add),
       ),
     );
@@ -217,11 +217,7 @@ class MatchCard extends StatelessWidget {
           children: [
             Text(
               DateFormat('yyyy-MM-dd').format(match.matchDate),
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0B3D2E),
-              ),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text('Home: ${match.homeTeam?.name ?? 'Unknown'}'),

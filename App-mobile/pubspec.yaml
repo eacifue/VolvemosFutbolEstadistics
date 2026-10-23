@@ -6,7 +6,8 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  # vaf_tokens.dart usa CardThemeData/DialogThemeData/TabBarThemeData: Flutter ≥ 3.29 (Dart 3.7)
+  sdk: '>=3.7.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -23,3 +24,18 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # Rediseño "Clásico de barrio": Barlow Condensed para números y titulares, Manrope para texto (OFL, ver assets/fonts).
+  fonts:
+    - family: Barlow Condensed
+      fonts:
+        - asset: assets/fonts/BarlowCondensed-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/BarlowCondensed-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/BarlowCondensed-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/BarlowCondensed-ExtraBold.ttf
+          weight: 800
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Variable.ttf

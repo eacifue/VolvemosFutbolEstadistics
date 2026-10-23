@@ -29,18 +29,12 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
     return SafeArea(
       child: Column(
         children: [
-          Container(
-            color: const Color(0xFF0B3D2E),
-            child: TabBar(
-              controller: _tabController,
-              tabs: const [
-                Tab(text: 'Manage Matches'),
-                Tab(text: 'Manage Players'),
-              ],
-              indicatorColor: const Color(0xFFD4AF37),
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-            ),
+          TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(text: 'Partidos'),
+              Tab(text: 'Jugadores'),
+            ],
           ),
           Expanded(
             child: TabBarView(

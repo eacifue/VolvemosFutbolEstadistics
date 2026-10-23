@@ -123,7 +123,7 @@ class _ManagePlayersScreenState extends State<ManagePlayersScreen> {
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreatePlayerDialog,
-        backgroundColor: const Color(0xFF0B3D2E),
+        tooltip: 'Nuevo jugador',
         child: const Icon(Icons.add),
       ),
     );
