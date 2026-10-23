@@ -30,6 +30,50 @@ button { font-family: inherit; }
 .vf-header__actions { display: flex; align-items: center; margin-right: calc(var(--space-2) * -1); }
 .vf-main--pad-bottom { padding-bottom: calc(var(--space-12) * 2); }
 
+/* ---------- Celulares ----------
+   El diseño se dibujó a 390–430 px. Escalones: ≤479 (todo celular), ≤429 (iPhone 12–15, Pixel, Galaxy),
+   ≤399 y ≤389 (iPhone SE/8, 375), ≤359 (Android pequeños, 320). Medido con capturas en 320/360/375/390/412/430. */
+@media (max-width: 479.98px) {
+  .vf-header { gap: var(--space-2); padding-inline: var(--space-3); }
+  .vf-header__title { font-size: 17px; }
+  .vf-header__sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vf-header__record { gap: var(--space-1); padding: var(--space-1) var(--space-2); font-size: 16px; }
+  .vf-header__draws { font-size: 13px; padding: 0 var(--space-1); }
+}
+/* Sin espacio para título en una línea: el título queda en dos líneas como logotipo y el subtítulo sobra */
+@media (max-width: 399.98px) {
+  .vf-header__sub { display: none; }
+}
+@media (max-width: 429.98px) {
+  .vf-score--hero .vf-score__nums { font-size: clamp(72px, 23vw, 96px); }
+  /* Líderes: la unidad va bajo el número para que "77% vic." quepa en un tercio de pantalla */
+  .vf-leader__val { flex-direction: column; align-items: flex-start; gap: var(--space-1); }
+  .vf-leader__val .vf-num { font-size: 36px; }
+}
+@media (max-width: 389.98px) {
+  /* Ranking: título arriba; periodo y compartir en su propia fila a todo el ancho */
+  .vf-rankhead { flex-wrap: wrap; }
+  .vf-rankhead > .vf-row { flex: 1 1 100%; }
+  .vf-rankhead .vf-tabs { flex: 1; width: auto; }
+}
+@media (max-width: 359.98px) {
+  .vf-header__record { display: none; }
+  .vf-main { padding-inline: var(--space-3); }
+  .vf-chiprow--scroll { margin-inline: calc(var(--space-3) * -1); padding-inline: var(--space-3); }
+  .vf-leaders { gap: var(--space-1); }
+  .vf-leader { padding: var(--space-2); }
+  .vf-leader__val .vf-num { font-size: 32px; }
+  .vf-leader__who > :first-child { display: none; }
+  .vf-actions2 { grid-template-columns: 1fr; }
+  /* Rachas: los 10 cuadros se reparten el ancho en vez de desbordarlo */
+  .vf-formrow { gap: var(--space-1); }
+  .vf-form { gap: 3px; }
+  .vf-form--sm .vf-form__chip > span:first-child { width: 18px; height: 18px; font-size: 11px; }
+  .vf-form:not(.vf-form--sm) { width: 100%; }
+  .vf-form:not(.vf-form--sm) .vf-form__chip { flex: 1 1 0; min-width: 0; }
+  .vf-form:not(.vf-form--sm) .vf-form__chip > span:first-child { width: 100%; max-width: 28px; height: auto; aspect-ratio: 1; }
+}
+
 /* ---------- Escritorio ---------- */
 @media (min-width: 1024px) {
   .vf-shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); max-width: none; padding-bottom: 0; }
