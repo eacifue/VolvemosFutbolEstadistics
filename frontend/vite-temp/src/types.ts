@@ -69,6 +69,7 @@ export interface Player {
     id: number;
     firstName: string;
     lastName: string;
+  nickname?: string | null;
   teamId?: number;
   teamName?: string;
   team?: Team;
@@ -132,6 +133,8 @@ export interface MatchPlayer {
     playerId: number;
     player: Player;
     teamId: number;
+    pitchX?: number | null;
+    pitchY?: number | null;
     createdAt: string;
 }
 
@@ -151,6 +154,7 @@ export interface Match {
     matchDate: string;
     homeTeamId?: number;
     awayTeamId?: number;
+    venue?: string | null;
     homeTeam?: Team;
     awayTeam?: Team;
     matchPlayers: MatchPlayer[];

@@ -1,0 +1,150 @@
+/* Shell real de la app. componentes.css trae los componentes vf-* tal cual del paquete de diseño;
+   aquí solo va lo que las previews resolvían con el marco de teléfono: posiciones fijas, escritorio,
+   capas y el sello "Pronto" para lo que todavía no tiene backend. Solo tokens, ningún valor suelto. */
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-text);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+[data-theme="dark"] { color-scheme: dark; }
+[data-theme="light"] { color-scheme: light; }
+#root { min-height: 100dvh; }
+a { color: inherit; }
+button { font-family: inherit; }
+
+/* ---------- Shell móvil ---------- */
+.vf-shell { min-height: 100dvh; max-width: var(--size-container); margin: 0 auto; padding-bottom: calc(var(--size-nav) + env(safe-area-inset-bottom)); background: var(--bg); }
+.vf-shell--bare { padding-bottom: 0; }
+.vf-shell > .vf-header { position: sticky; top: 0; z-index: 20; }
+.vf-shell > .vf-nav { position: fixed; z-index: 20; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: var(--size-container); padding-bottom: env(safe-area-inset-bottom); }
+.vf-nav__item { min-height: var(--size-tap); }
+.vf-shell > .vf-desk__side { display: none; }
+.vf-page { display: flex; flex-direction: column; min-width: 0; }
+.vf-page > .vf-topbar { position: sticky; top: 0; z-index: 20; background: var(--bg); }
+.vf-page .vf-tabs--underline { background: var(--bg); }
+.vf-header__actions { display: flex; align-items: center; margin-right: calc(var(--space-2) * -1); }
+.vf-main--pad-bottom { padding-bottom: calc(var(--space-12) * 2); }
+
+/* ---------- Escritorio ---------- */
+@media (min-width: 1024px) {
+  .vf-shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); max-width: none; padding-bottom: 0; }
+  .vf-shell > .vf-header, .vf-shell > .vf-nav { display: none; }
+  .vf-shell > .vf-desk__side { display: flex; position: sticky; top: 0; height: 100dvh; }
+  .vf-shell__content { min-width: 0; }
+  .vf-shell__content > .vf-page { max-width: var(--size-container); margin: 0 auto; }
+  .vf-shell__content > .vf-page--wide { max-width: none; margin: 0; }
+  .vf-page--wide > .vf-main { padding: var(--space-6); }
+  .vf-only-mobile { display: none !important; }
+}
+@media (max-width: 1023.98px) {
+  .vf-only-desk { display: none !important; }
+}
+.vf-desk__nav a { cursor: pointer; }
+.vf-desk__foot { margin-top: auto; display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* Admin de escritorio: lista de partidos + detalle */
+.vf-admindesk { display: grid; grid-template-columns: 340px minmax(0, 1fr); min-height: 100dvh; }
+.vf-admindesk > .vf-desk__list { width: auto; }
+.vf-admindesk .vf-desk__main { padding: var(--space-6); }
+
+/* ---------- Pronto (sin backend aún) ---------- */
+.vf-soon { background: transparent; color: var(--ink-muted); border: 1px dashed var(--line-strong); }
+.vf-soonbox { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3) var(--space-4); border: 1px dashed var(--line-strong); border-radius: var(--radius-md); }
+.vf-soonbox__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.vf-soonbox[aria-disabled="true"] .vf-soonbox__body { opacity: .55; pointer-events: none; }
+.vf-soonbox__body { display: flex; flex-direction: column; gap: var(--space-2); }
+.vf-qep__btn .vf-soon { position: absolute; top: var(--space-1); right: var(--space-1); }
+.vf-qep__btn:disabled { cursor: not-allowed; }
+.vf-qep__btn:disabled > :not(.vf-soon) { opacity: .45; }
+.vf-qep__btn { position: relative; }
+
+/* ---------- Capas reales (no inline) ---------- */
+.vf-sheet-layer { justify-content: center; }
+.vf-sheet { max-width: var(--size-container); }
+.vf-toasts { box-sizing: border-box; position: fixed; z-index: 60; left: 50%; transform: translateX(-50%); bottom: calc(var(--size-nav) + var(--space-3) + env(safe-area-inset-bottom)); width: calc(100% - var(--space-8)); max-width: calc(var(--size-container) - var(--space-8)); display: flex; flex-direction: column; gap: var(--space-2); pointer-events: none; }
+.vf-toasts > * { pointer-events: auto; animation: vf-rise var(--duration-base) var(--ease-out); }
+.vf-shell--bare ~ .vf-toasts, .vf-toasts.is-bare { bottom: var(--space-4); }
+@media (min-width: 1024px) { .vf-toasts { left: auto; right: var(--space-6); transform: none; bottom: var(--space-6); width: 360px; } }
+@keyframes vf-rise { from { opacity: 0; transform: translateY(8px); } }
+.vf-sheet-layer .vf-sheet { animation: vf-sheet-in var(--duration-slow) var(--ease-out); }
+@keyframes vf-sheet-in { from { transform: translateY(24px); opacity: 0; } }
+.vf-page--live .vf-snackslot { position: fixed; left: 50%; right: auto; transform: translateX(-50%); width: calc(100% - var(--space-6)); max-width: calc(var(--size-container) - var(--space-6)); bottom: var(--space-4); }
+.vf-page .vf-editbar { box-sizing: border-box; position: fixed; left: 50%; transform: translateX(-50%); width: 100%; max-width: var(--size-container); z-index: 30; padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom)); }
+.vf-snack__timer span { transition: width var(--duration-fast) linear; }
+
+/* ---------- Formularios ---------- */
+.vf-field__box input[type="date"], .vf-field__box input[type="time"] { min-height: 44px; }
+.vf-field__box input:disabled { color: var(--ink-faint); cursor: not-allowed; }
+.vf-field.is-disabled .vf-field__box { border-style: dashed; }
+.vf-field__labelrow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.vf-money { width: 96px; }
+
+/* ---------- Listas de admin ---------- */
+.vf-lb__actions { display: flex; align-items: center; margin-right: calc(var(--space-2) * -1); }
+.vf-lb button.vf-lb__main { all: unset; display: flex; align-items: center; gap: var(--space-3); flex: 1; min-width: 0; cursor: pointer; min-height: var(--size-tap); border-radius: var(--radius-sm); }
+.vf-lb button.vf-lb__main:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.vf-evrow { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2); border-bottom: 1px solid var(--line); min-height: 52px; }
+.vf-evrow:last-child { border-bottom: 0; }
+.vf-evrow__who { flex: 1; min-width: 0; display: flex; flex-direction: column; font: 700 14px/18px var(--font-text); }
+.vf-evrow__who small { font: 500 12px/16px var(--font-text); color: var(--ink-muted); }
+.vf-evrow__n { width: 20px; color: var(--ink-muted); font-size: 15px; }
+.vf-card { padding: var(--space-4); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); }
+.vf-pickgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.vf-pickgrid .vf-chip { justify-content: flex-start; min-width: 0; }
+.vf-pickgrid .vf-chip > span:not(.vf-chip__count) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vf-adminactions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+
+/* ---------- Compartir ---------- */
+.vf-sharepreview { display: flex; justify-content: center; }
+.vf-sharepreview .vf-share { width: min(360px, 100%); }
+
+/* ---------- Cancha editable ---------- */
+.vf-pitch.is-editable .vf-pitch__slot { touch-action: none; }
+.vf-pitch.is-editable { cursor: crosshair; }
+.vf-pitch__slot.is-dragging { z-index: 5; }
+
+/* ---------- Varios ---------- */
+.vf-link--btn { background: none; border: 0; padding: 0; cursor: pointer; }
+.vf-center { align-items: center; text-align: center; }
+.vf-row { display: flex; align-items: center; gap: var(--space-2); }
+.vf-row--between { justify-content: space-between; }
+.vf-grow { flex: 1; min-width: 0; }
+.vf-pagehead { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.vf-login-wrap { min-height: 100dvh; display: flex; align-items: center; justify-content: center; }
+.vf-login { width: 100%; max-width: 420px; }
+@media (min-width: 1024px) { .vf-login-wrap { min-height: calc(100dvh - var(--space-12)); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .vf-toasts > *, .vf-sheet-layer .vf-sheet { animation: none; }
+  .vf-snack__timer span { transition: none; }
+}
+.vf-table tr.is-clickable { cursor: pointer; }
+.vf-table tr.is-clickable:hover td { background: var(--surface-2); }
+
+/* Botones que en las previews eran enlaces */
+button.vf-leader { font: inherit; text-align: left; cursor: pointer; color: var(--ink); }
+.vf-paybtn { position: relative; border: 0; cursor: pointer; }
+.vf-paybtn::after { content: ""; position: absolute; inset: calc(var(--space-3) * -1); }
+.vf-paybtn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.vf-shell__notice { padding: var(--space-3) var(--space-4) 0; }
+@media (min-width: 1024px) { .vf-shell__notice { max-width: var(--size-container); margin: 0 auto; } }
+.vf-fullw { width: 100%; }
+.vf-installicon { width: 72px; height: 72px; border-radius: var(--radius-lg); }
+.vf-installlist { width: 100%; text-align: left; }
+button.vf-insight { width: 100%; text-align: left; font: inherit; color: var(--ink); cursor: pointer; }
+button.vf-insight:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.vf-hero > .vf-btn { align-self: center; }
+@media (min-width: 1024px) {
+  .vf-shell__content > .vf-main:not(.vf-main--wide) { max-width: var(--size-container); margin: 0 auto; }
+  .vf-shell__content > .vf-main--wide { padding: var(--space-6); }
+}
+.vf-cellwho.vf-link--btn { color: var(--ink); font: inherit; display: inline-flex; align-items: center; gap: 6px; min-height: var(--size-tap); }
+.vf-cellwho.vf-link--btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.vf-next__rsvp[aria-disabled="true"] .vf-rsvp { opacity: .5; cursor: not-allowed; }
+.vf-field__labelrow { min-height: 22px; }
+.vf-streak.is-wall .vf-icon { color: var(--accent-ink); }

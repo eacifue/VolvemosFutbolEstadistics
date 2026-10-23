@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
 import { authService, type AuthUser } from '../services/authService';
 
 interface AuthContextType {
@@ -14,10 +14,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(() => authService.getUser());
   const [token, setToken] = useState<string | null>(() => authService.getToken());
-
-  useEffect(() => {
-    console.log('AuthProvider mounted');
-  }, []);
 
   const login = async (username: string, password: string) => {
     const response = await authService.login(username, password);
@@ -45,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {

@@ -2,6 +2,12 @@ import axios from 'axios';
 import type { AxiosResponse } from 'axios';
 import type { Player } from '../types';
 
+export interface PlayerPayload { firstName: string; lastName: string; nickname?: string | null; idPosition?: number | null }
+export interface MatchPayload { matchDate: string; homeTeamId?: number; awayTeamId?: number; venue?: string | null }
+export interface PitchPosition { playerId: number; x: number | null; y: number | null }
+export interface MatchEventPayload { matchId: number; playerId: number; eventTypeId: number; teamId: number }
+export interface MatchPlayerPayload { matchId?: number; playerId: number; teamId: number }
+
 // ✅ Base URL segura (NO rompe en producción ni en local)
 const baseURL = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api`
@@ -53,10 +59,10 @@ export const getPlayers = () =>
 export const getPlayer = (id: number) =>
   request(apiClient.get(`/players/${id}`));
 
-export const createPlayer = (player: any) =>
+export const createPlayer = (player: PlayerPayload) =>
   request(apiClient.post('/players', player));
 
-export const updatePlayer = (id: number, player: any) =>
+export const updatePlayer = (id: number, player: PlayerPayload) =>
   request(apiClient.put(`/players/${id}`, player));
 
 export const deletePlayer = (id: number) =>
@@ -84,13 +90,16 @@ export const getEventTypes = () =>
 export const getMatches = () =>
   request(apiClient.get('/matches'));
 
+export const getVenues = () =>
+  request<string[]>(apiClient.get('/matches/venues'));
+
 export const getMatch = (id: number) =>
   request(apiClient.get(`/matches/${id}`));
 
-export const createMatch = (match: any) =>
+export const createMatch = (match: MatchPayload) =>
   request(apiClient.post('/matches', match));
 
-export const updateMatch = (id: number, match: any) =>
+export const updateMatch = (id: number, match: MatchPayload) =>
   request(apiClient.put(`/matches/${id}`, match));
 
 export const deleteMatch = (id: number) =>
@@ -100,10 +109,10 @@ export const deleteMatch = (id: number) =>
 export const getMatchEvents = (matchId: number) =>
   request(apiClient.get(`/matchevents/match/${matchId}`));
 
-export const createMatchEvent = (event: any) =>
+export const createMatchEvent = (event: MatchEventPayload) =>
   request(apiClient.post('/matchevents', event));
 
-export const updateMatchEvent = (id: number, event: any) =>
+export const updateMatchEvent = (id: number, event: MatchEventPayload) =>
   request(apiClient.put(`/matchevents/${id}`, event));
 
 export const deleteMatchEvent = (id: number) =>
@@ -116,7 +125,7 @@ export const deleteMatchEventsByMatch = (matchId: number) =>
 export const getMatchPlayers = (matchId: number) =>
   request(apiClient.get(`/matchplayers/match/${matchId}`));
 
-export const addPlayerToMatch = (matchPlayer: any) =>
+export const addPlayerToMatch = (matchPlayer: MatchPlayerPayload) =>
   request(apiClient.post('/matchplayers', matchPlayer));
 
 export const removePlayerFromMatch = (
@@ -124,6 +133,14 @@ export const removePlayerFromMatch = (
   playerId: number
 ) =>
   apiClient.delete(`/matchplayers/${matchId}/${playerId}`);
+
+// Posiciones de la cancha que ven todos (x/y en % 0–100; null = ubicación automática)
+export const updatePitchPositions = (matchId: number, positions: PitchPosition[]) =>
+  request(apiClient.put(`/matchplayers/${matchId}/positions`, positions));
+
+// Pasa a un jugador al otro equipo sin sacarlo del partido
+export const changePlayerTeam = (matchId: number, playerId: number, teamId: number) =>
+  request(apiClient.patch(`/matchplayers/${matchId}/${playerId}`, { teamId }));
 
 // ✅ Export del cliente (por si lo necesitas en otros lados)
 export default apiClient;

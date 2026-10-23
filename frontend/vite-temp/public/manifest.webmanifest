@@ -1,0 +1,14 @@
+{
+  "name": "Volvemos al Fútbol · Blanco y Negro",
+  "short_name": "Volvemos",
+  "description": "Las estadísticas del Blanco vs Negro.",
+  "lang": "es-CO",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0d0d0c",
+  "theme_color": "#0d0d0c",
+  "icons": [
+    { "src": "/escudo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

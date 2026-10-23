@@ -1,0 +1,119 @@
+/* Volvemos al Fútbol — generado desde tokens.json. Tema oscuro por defecto; aplica data-theme="light" en <html> para el claro. */
+:root, [data-theme="dark"] {
+  --bg: #0d0d0c;
+  --surface: #171716;
+  --surface-2: #21211f;
+  --surface-3: #2c2c29;
+  --line: #33332f;
+  --line-strong: #6a6a63;
+  --ink: #f2f1ea;
+  --ink-muted: #a3a29a;
+  --ink-faint: #75746d;
+  --accent: #d4ff3a;
+  --on-accent: #0d0d0c;
+  --accent-ink: #d4ff3a;
+  --accent-soft: #2a3310;
+  --danger: #ff5a4e;
+  --danger-soft: #3a1512;
+  --focus: #d4ff3a;
+  --scrim: rgba(0, 0, 0, 0.64);
+  --team-white: #f5f4ee;
+  --team-white-ink: #0d0d0c;
+  --team-white-edge: #f5f4ee;
+  --team-black: #0d0d0c;
+  --team-black-ink: #f5f4ee;
+  --team-black-edge: #8a8982;
+  --team-black-stripe: #2e2e2b;
+  --event-goal: var(--ink);
+  --event-assist: var(--accent-ink);
+  --event-own-goal: var(--danger);
+  --event-yellow: #f5c518;
+  --event-red: #e0352b;
+  --state-live: var(--accent);
+  --leader: var(--accent);
+  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-sheet: 0 -12px 32px rgba(0, 0, 0, 0.6);
+}
+[data-theme="light"] {
+  --bg: #f4f3ee;
+  --surface: #ffffff;
+  --surface-2: #ecebe5;
+  --surface-3: #e0dfd8;
+  --line: #d6d5cd;
+  --line-strong: #84837b;
+  --ink: #111110;
+  --ink-muted: #5c5b55;
+  --ink-faint: #7a7972;
+  --accent: #d4ff3a;
+  --on-accent: #0d0d0c;
+  --accent-ink: #4d6300;
+  --accent-soft: #eef9c4;
+  --danger: #c42b1f;
+  --danger-soft: #fbe3e0;
+  --focus: #111110;
+  --scrim: rgba(17, 17, 16, 0.48);
+  --team-white: #f5f4ee;
+  --team-white-ink: #0d0d0c;
+  --team-white-edge: #77766f;
+  --team-black: #0d0d0c;
+  --team-black-ink: #f5f4ee;
+  --team-black-edge: #0d0d0c;
+  --team-black-stripe: #2e2e2b;
+  --event-goal: var(--ink);
+  --event-assist: var(--accent-ink);
+  --event-own-goal: var(--danger);
+  --event-yellow: #f5c518;
+  --event-red: #e0352b;
+  --state-live: var(--accent);
+  --leader: var(--accent);
+  --shadow-float: 0 8px 24px rgba(17, 17, 16, 0.14);
+  --shadow-sheet: 0 -12px 32px rgba(17, 17, 16, 0.16);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+  --size-tap: 44px;
+  --size-tap-live: 72px;
+  --size-avatar-sm: 32px;
+  --size-avatar-md: 44px;
+  --size-avatar-lg: 88px;
+  --size-container: 560px;
+  --size-nav: 64px;
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.6, 0, 0.2, 1);
+  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-text: Manrope, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-latin-500-normal.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-latin-600-normal.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-latin-700-normal.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Barlow Condensed'; src: url('./fonts/barlow-condensed-latin-800-normal.woff2') format('woff2'); font-weight: 800; font-display: swap; }
+@font-face { font-family: 'Manrope'; src: url('./fonts/manrope-latin-wght-normal.woff2') format('woff2'); font-weight: 200 800; font-display: swap; }
+.score-hero{font-family:var(--font-display);font-size:96px;line-height:0.9;font-weight:800;letter-spacing:-0.01em;font-variant-numeric:tabular-nums;}
+.score-lg{font-family:var(--font-display);font-size:56px;line-height:0.9;font-weight:800;font-variant-numeric:tabular-nums;}
+.score-md{font-family:var(--font-display);font-size:32px;line-height:1;font-weight:700;font-variant-numeric:tabular-nums;}
+.score-sm{font-family:var(--font-display);font-size:20px;line-height:1;font-weight:700;font-variant-numeric:tabular-nums;}
+.stat-xl{font-family:var(--font-display);font-size:48px;line-height:0.95;font-weight:800;font-variant-numeric:tabular-nums;}
+.stat-md{font-family:var(--font-display);font-size:24px;line-height:1;font-weight:700;font-variant-numeric:tabular-nums;}
+.display-lg{font-family:var(--font-display);font-size:36px;line-height:0.95;font-weight:800;font-variant-numeric:tabular-nums;}
+.display-md{font-family:var(--font-display);font-size:24px;line-height:1;font-weight:700;font-variant-numeric:tabular-nums;}
+.label-caps{font-family:var(--font-display);font-size:13px;line-height:16px;font-weight:600;letter-spacing:0.08em;font-variant-numeric:tabular-nums;}
+.title{font-family:var(--font-text);font-size:17px;line-height:24px;font-weight:700;}
+.body{font-family:var(--font-text);font-size:15px;line-height:22px;font-weight:500;}
+.body-strong{font-family:var(--font-text);font-size:15px;line-height:22px;font-weight:700;}
+.small{font-family:var(--font-text);font-size:13px;line-height:18px;font-weight:500;}
+.micro{font-family:var(--font-text);font-size:11px;line-height:14px;font-weight:700;letter-spacing:0.04em;}
